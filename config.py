@@ -4,7 +4,8 @@ def get_config(
     remove_stopwords: bool = True,
     lemmatize: bool = True,
     maxlen: int = 200,
-    mode: str = "train"
+    mode: str = "train",
+    bert_variant: str = "vanilla"
 ):
     cfg = mlc.ConfigDict()
 
@@ -13,6 +14,7 @@ def get_config(
     cfg.lemmatize = lemmatize
     cfg.maxlen = maxlen
     cfg.mode = mode
+    cfg.bert_variant = bert_variant
 
     return cfg
 
