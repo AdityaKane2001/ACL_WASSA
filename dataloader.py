@@ -42,8 +42,7 @@ class EssayDataloader:
     def __init__(self, tsv_path, cfg):
         self.tsv_path = tsv_path
         self.cfg = cfg
-        self.tokenizer = BertTokenizer.from_pretrained(
-            "bert-base-uncased", do_lower_case=True)
+
         self.raw_df = get_file_to_df(tsv_path)
         
         self.stop_words = stopwords.words('english')
@@ -144,9 +143,9 @@ class EssayDataloader:
         """
         essays = self.raw_df["essay"]
         essays = self.clean_text_corpus(essays)
-        essays, bert_attn_mask = self.prepare_input(essays)
+        # essays, bert_attn_mask = self.prepare_input(essays)
 
-        return essays, bert_attn_mask
+        return essays
 
     def get_track_1_outputs(self) -> torch.Tensor:
         """
