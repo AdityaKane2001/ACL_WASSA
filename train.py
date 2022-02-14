@@ -45,8 +45,11 @@ def accuracy(true, pred):
 
 for epoch in range(3):
     print("Epoch:", epoch)
-    for i, batch in enumerate(train_ds):
-        print("Batch:", i)
+    batchnum = 0
+    for batch in train_ds:
+        
+        print("Batch:", batchnum)
+        batchnum += 1
         outputs = model(batch)
         loss = 0
         for i in range(len(outputs)):
