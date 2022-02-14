@@ -43,7 +43,7 @@ def accuracy(true, pred):
     return float(100 * acc.sum() / len(acc))
 
 
-for idx, batch in train_ds:
+for idx, batch in enumerate(train_ds):
     print(idx, batch)
     break
 
