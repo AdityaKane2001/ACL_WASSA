@@ -116,17 +116,25 @@ class WASSADataset(torch.utils.data.Dataset):
 
         return (cleaned_text,
                 torch.tensor(self.EMOTION_DICT[self.emotion[idx]]),
-                torch.tensor(self.empathy[idx]),
-                torch.tensor(self.distress[idx]),
-                torch.tensor(self.personality_conscientiousness[idx]),
-                torch.tensor(self.personality_openess[idx]),
-                torch.tensor(self.personality_extraversion[idx]),
-                torch.tensor(self.personality_agreeableness[idx]),
-                torch.tensor(self.personality_stability[idx]),
-                torch.tensor(self.iri_perspective_taking[idx]),
-                torch.tensor(self.iri_fantasy[idx]),
-                torch.tensor(self.iri_personal_distress[idx]),
-                torch.tensor(self.iri_empathatic_concern[idx]),
+                torch.tensor(self.empathy[idx], dtype=torch.float32),
+                torch.tensor(self.distress[idx], dtype=torch.float32),
+                torch.tensor(
+                    self.personality_conscientiousness[idx], dtype=torch.float32),
+                torch.tensor(
+                    self.personality_openess[idx], dtype=torch.float32),
+                torch.tensor(
+                    self.personality_extraversion[idx], dtype=torch.float32),
+                torch.tensor(
+                    self.personality_agreeableness[idx], dtype=torch.float32),
+                torch.tensor(
+                    self.personality_stability[idx], dtype=torch.float32),
+                torch.tensor(
+                    self.iri_perspective_taking[idx], dtype=torch.float32),
+                torch.tensor(self.iri_fantasy[idx], dtype=torch.float32),
+                torch.tensor(
+                    self.iri_personal_distress[idx], dtype=torch.float32),
+                torch.tensor(
+                    self.iri_empathatic_concern[idx], dtype=torch.float32)
                )
 
 
