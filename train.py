@@ -9,7 +9,9 @@ cfg = get_config(
     remove_stopwords=False,
     lemmatize=False,
     maxlen=200,
-    mode="train"
+    mode="train",
+    classification_loss="categorical_crossentropy",
+    regression_loss="mean_squared_error"
 )
 
 # dataloader = EssayDataloader(
@@ -18,15 +20,61 @@ cfg = get_config(
 # essays = dataloader.get_track_1_inputs()
 # labels = dataloader.get_track_1_outputs()
 
-bb = BERT_base(cfg)
+model = EssayToAllBERT()
 
 ds = WASSADataset('./messages_train_ready_for_WS.tsv', cfg)
 ds = torch.utils.data.DataLoader(ds, batch_size = 8, shuffle = True)
 
-for i in ds:
-    print(i)
-    break
+train_size = int(len(ds) * 0.8)
+val_size = len(ds) - train_size
 
+train_ds, val_ds = torch.utils.data.random_split(
+    ds, [train_size, val_size])
+
+train_ds = torch.utils.data.DataLoader(train_ds, batch_size=8, shuffle=True)
+val_ds = torch.utils.data.DataLoader(val_ds, batch_size=8, shuffle=False)
+
+criteria = get_criteria(cfg)
+
+optimizer = torch.optim.Adam(model.parameters(), lr=0.0001)
+
+
+def accuracy(true, pred):
+    acc = (true == pred.argmax(-1)).float().detach().numpy()
+    return float(100 * acc.sum() / len(acc))
+
+for epoch in range(3):
+    print("Epoch:", epoch)
+    for i, batch in enumerate(train_ds):
+        print("Batch:", i)
+        outputs = model(batch)
+        loss = 0
+        for i in range(len(outputs)):
+            loss += criteria[i](outputs[i],batch[i+1])
+        loss.backward()
+        optimizer.step()
+        optimizer.zero_grad()
+
+        print("Train loss: ", loss)
+        print("Train accuracy: ", accuracy(batch[0], outputs[0]))
+
+    state = {
+        'epoch': epoch,
+        'state_dict': model.state_dict(),
+        'optimizer': optimizer.state_dict(),
+    }
+    torch.save(state, f"./ckpts/bert_{epoch}.pt")
+
+    model.eval()
+    with torch.no_grad():
+        for val_batch in val_ds:
+            val_outputs = model(val_batch)
+            val_loss = 0
+            for i in range(len(val_outputs)):
+                val_loss += criteria[i](val_outputs[i], val_batch[i+1])
+
+            print("Val loss: ", loss)
+            print("val accuracy: ", accuracy(val_batch[0], val_outputs[0]))
 
 # input_ids, attn_masks = bb._prepare_input(essays)
 # outputs = bb.forward(input_ids[:5], attn_masks[:5], labels[:5].unsqueeze(0))
@@ -37,30 +85,29 @@ for i in ds:
 
 # train_ds = zip(input_ids_ds, attn_masks_ds, labels_ds)
 
-# opt = torch.optim.Adam(bb.model.parameters(), lr=0.0001)
 
 # for batch in train_ds:
 #     print(batch[0])
 #     break
 
 
-def train(model, optimizer, train_dataloader):
-    device = torch.device(
-        "cuda") if torch.cuda.is_available() else torch.device("cpu")
-    model.to(device)
-    for epoch in range(3):
-        print("Epoch:", epoch)
-        for i, batch in enumerate(train_dataloader):
-            print("Batch:", i)
-            batch.to(device)
-            outputs = model(
-                input_ids=batch[0], attention_mask=batch[1], labels=batch[2])
-            loss = outputs.loss
-            loss.backward()
-            optimizer.step()
-            optimizer.zero_grad()
+# def train(model, optimizer, train_dataloader):
+#     device = torch.device(
+#         "cuda") if torch.cuda.is_available() else torch.device("cpu")
+#     model.to(device)
+#     for epoch in range(3):
+#         print("Epoch:", epoch)
+#         for i, batch in enumerate(train_dataloader):
+#             print("Batch:", i)
+#             batch.to(device)
+#             outputs = model(
+#                 input_ids=batch[0], attention_mask=batch[1], labels=batch[2])
+#             loss = outputs.loss
+#             loss.backward()
+#             optimizer.step()
+#             optimizer.zero_grad()
 
-            print("Train loss: ", loss)
+#             print("Train loss: ", loss)
 
 
 # train(bb.model, opt, train_ds)

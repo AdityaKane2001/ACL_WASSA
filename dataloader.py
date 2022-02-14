@@ -115,6 +115,9 @@ class WASSADataset(torch.utils.data.Dataset):
         cleaned_text = self.clean_single_line(self.essays[idx])
 
         return (cleaned_text,
+                self.EMOTION_DICT[self.emotion[idx]],
+                self.empathy[idx],
+                self.distress[idx],
                 self.personality_conscientiousness[idx],
                 self.personality_openess[idx],
                 self.personality_extraversion[idx],
@@ -124,7 +127,7 @@ class WASSADataset(torch.utils.data.Dataset):
                 self.iri_fantasy[idx],
                 self.iri_personal_distress[idx],
                 self.iri_empathatic_concern[idx],
-                self.EMOTION_DICT[self.emotion[idx]])
+               )
 
 
 

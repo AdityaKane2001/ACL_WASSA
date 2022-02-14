@@ -5,7 +5,9 @@ def get_config(
     lemmatize: bool = True,
     maxlen: int = 200,
     mode: str = "train",
-    bert_variant: str = "vanilla"
+    bert_variant: str = "vanilla",
+    classification_loss: str = "categorical_crossentropy",
+    regression_loss: str = "mean_squared_error"
 ):
     cfg = mlc.ConfigDict()
 
@@ -15,6 +17,8 @@ def get_config(
     cfg.maxlen = maxlen
     cfg.mode = mode
     cfg.bert_variant = bert_variant
+    cfg.classification_loss = classification_loss
+    cfg.regression_loss = regression_loss
 
     return cfg
 
