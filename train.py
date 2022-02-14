@@ -62,7 +62,7 @@ for epoch in range(3):
                                    truncation=True,
                                    return_tensors="pt")
 
-        batch = batch.to(device)
+        batch = [elem.to(device) for elem in batch]
 
         outputs = model(batch)
 
