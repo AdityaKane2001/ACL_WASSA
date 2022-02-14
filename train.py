@@ -11,6 +11,7 @@ cfg = get_config(
     lemmatize=False,
     maxlen=200,
     num_classes=7,
+    batch_size=64,
     mode="train",
     classification_loss="categorical_crossentropy",
     regression_loss="mean_squared_error"
@@ -32,12 +33,13 @@ val_size = len(ds) - train_size
 train_ds, val_ds = torch.utils.data.random_split(
     ds, [train_size, val_size])
 
-train_ds = torch.utils.data.DataLoader(train_ds, batch_size=8, shuffle=True)
-val_ds = torch.utils.data.DataLoader(val_ds, batch_size=8, shuffle=False)
+train_ds = torch.utils.data.DataLoader(train_ds, batch_size=cfg.batch_size, shuffle=True)
+val_ds = torch.utils.data.DataLoader(
+    val_ds, batch_size=cfg.batch_size, shuffle=False)
 
 criteria = get_criteria(cfg)
 
-optimizer = torch.optim.Adam(model.parameters(), lr=0.0001)
+optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
 
 
 def accuracy(true, pred):
