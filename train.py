@@ -1,10 +1,13 @@
-from jax import device_count
 from dataloader import WASSADataset
 from config import get_config, get_static_config
 from utils import *
 from model import *
-
+import ml_collections as mlc
 import numpy as np
+
+from tqdm.auto import tqdm
+
+import wandb
 
 import warnings
 warnings.filterwarnings("ignore")
@@ -13,23 +16,19 @@ from sklearn.metrics import f1_score
 
 import torch
 
-cfg = get_config(
-    remove_stopwords=False,
-    lemmatize=False,
-    maxlen=100,
-    num_classes=7,
-    batch_size=64,
-    epochs=20,
-    mode="train",
-    classification_loss="categorical_crossentropy",
-    regression_loss="mean_squared_error"
-)
+cfg = mlc.ConfigDict()
+cfg.model="bert_base"
+cfg.remove_stopwords=False
+cfg.lemmatize=False
+cfg.maxlen=100
+cfg.num_classes=7
+cfg.batch_size=64
+cfg.epochs=20
+cfg.learning_rate = 1e-4
+cfg.mode="train"
+cfg.classification_loss="categorical_crossentropy"
+cfg.regression_loss="mean_squared_error"
 
-# dataloader = EssayDataloader(
-#     './messages_train_ready_for_WS.tsv', cfg)
-
-# essays = dataloader.get_track_1_inputs()
-# labels = dataloader.get_track_1_outputs()
 
 model = EssayToAllBERT(cfg)
 
@@ -50,6 +49,18 @@ criteria = get_criteria(cfg)
 optimizer = torch.optim.Adam(model.parameters(), lr=0.0001)
 
 
+#wandb stuff
+timestr = get_run_timestr()
+
+run_name = "-".join([cfg.model, timestr])
+
+cfg.description = "BERT base training, only essay to all predictions" ######### modify this
+wandb.init(entity="compyle",
+           project="acl_wassa",
+           job_type="train",
+           name=run_name,
+           config=cfg.to_dict())
+
 def accuracy(true, pred):
     # print(type(true), type(pred))
     acc = (true == pred.argmax(-1)).float().detach().sum()
@@ -66,10 +77,13 @@ device = torch.device(
 
 
 for epoch in range(cfg.epochs):
+    progress_bar = tqdm(range(len(train_ds)))
+    model.train()
     print("Epoch:", epoch)
     epoch_loss = []
     epoch_acc = []
     epoch_f1 = []
+    progress_bar.set_description(f"Epoch {epoch}")
     for batchnum, batch in enumerate(train_ds):
         
         # print("Batch:", batchnum)
@@ -97,23 +111,25 @@ for epoch in range(cfg.epochs):
 
         acc = accuracy(batch[1], outputs[0])
         f1 = f1_loss(batch[1], outputs[0])
-        
-        epoch_loss.append(loss.detach().cpu().numpy())
+        loss_ = loss.detach().cpu().numpy()
+        epoch_loss.append(loss_)
         epoch_acc.append(acc)
         epoch_f1.append(f1)
+        progress_bar.set_postfix(loss=loss_, accuracy=acc, f1=f1)
+        progress_bar.update(1)
 
-        
+    progress_bar.set_postfix(loss=np.mean(epoch_loss),
+                             accuracy=np.mean(epoch_acc),
+                             f1=np.mean(epoch_f1))
 
-    print("Train loss: ", np.mean(epoch_loss) )
-    print("Train accuracy: ", np.mean(epoch_acc))
-    print("Train F1:", np.mean(epoch_f1))
+    # state = {
+    #     'epoch': epoch,
+    #     'state_dict': model.state_dict(),
+    #     'optimizer': optimizer.state_dict(),
+    # }
+    # torch.save(state, f"./ckpts/bert_{epoch}.pt")
 
-    state = {
-        'epoch': epoch,
-        'state_dict': model.state_dict(),
-        'optimizer': optimizer.state_dict(),
-    }
-    torch.save(state, f"./ckpts/bert_{epoch}.pt")
+    # validation loop
     val_epoch_loss = []
     val_epoch_acc = []
     val_epoch_f1 = []
@@ -131,10 +147,10 @@ for epoch in range(cfg.epochs):
             val_batch = [elem.to(device) for elem in val_batch]
 
             val_outputs = model(val_batch)
-            val_loss = 0
-            for i in range(len(val_outputs)):
+            val_loss = criteria[0](val_outputs[0], val_batch[1])
+            # for i in range(len(val_outputs)):
                 
-                val_loss += criteria[i](val_outputs[i], val_batch[i+1]) 
+            #     val_loss += 
 
             val_f1 = f1_loss(val_batch[1], val_outputs[0])
             val_acc = accuracy(val_batch[1], val_outputs[0])
@@ -143,9 +159,19 @@ for epoch in range(cfg.epochs):
             val_epoch_acc.append(val_acc)
             val_epoch_f1.append(val_f1)
 
-    print("Val loss: ", np.mean(val_epoch_loss))
-    print("val accuracy: ", np.mean(val_epoch_acc))
-    print("Val f1: ", np.mean(val_epoch_f1))
+    tqdm.write(
+        f"Val loss: {np.mean(val_epoch_loss)} Val accuracy: {np.mean(val_epoch_acc)} Val f1: {np.mean(val_epoch_f1)}")
+    progress_bar.close()
+    wandb.log({
+        "epoch": epoch,
+        "train loss": np.mean(epoch_loss),
+        "train accuracy":  np.mean(epoch_acc),
+        "train macro f1":  np.mean(epoch_f1),
+        "val loss":  np.mean(val_epoch_loss),
+        "val accuracy": np.mean(val_epoch_acc),
+        "val macro f1": np.mean(val_epoch_f1)
+    })
+
 
 
 

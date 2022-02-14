@@ -15,3 +15,9 @@ def get_criteria(cfg):
     if cfg.regression_loss == "mean_squared_error":
         criteria += [nn.MSELoss()] * 11
     return criteria
+
+
+def get_run_timestr():
+    now = datetime.now()
+    date_time = now.strftime("%m-%d-%Y-%Hh%Mm%Ss")
+    return date_time

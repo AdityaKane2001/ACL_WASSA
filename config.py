@@ -1,7 +1,8 @@
-import ml_collections as mlc
+
 
 def get_config(
     remove_stopwords: bool = True,
+    model:str="bert_base",
     lemmatize: bool = True,
     maxlen: int = 200,
     num_classes :int = 7,
