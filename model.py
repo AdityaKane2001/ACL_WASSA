@@ -86,7 +86,7 @@ class EssayToAllBERT(nn.Module):
                         max_length=self.cfg.maxlen,
                         padding='max_length',
                         truncation=True)
-
+        print({k:(type(v)) for k,v in x.items()})
         x = x.to(self.device)
 
         x = self.bert(**x)[0] # (batch_size, hidden_size)
