@@ -43,46 +43,44 @@ def accuracy(true, pred):
     return float(100 * acc.sum() / len(acc))
 
 
-for idx, batch in enumerate(train_ds):
-    print(idx, batch)
-    break
 
-# for epoch in range(3):
-#     print("Epoch:", epoch)
-#     batchnum = 0
-#     for batch in train_ds:
+for epoch in range(3):
+    print("Epoch:", epoch)
+    for batchnum, batch in enumerate(train_ds):
         
-#         print("Batch:", batchnum)
-#         batchnum += 1
-#         outputs = model(batch)
-#         loss = 0
-#         for i in range(len(outputs)):
-#             loss += criteria[i](outputs[i],batch[i+1])
-#         loss.backward()
-#         optimizer.step()
-#         optimizer.zero_grad()
+        print("Batch:", batchnum)
+        outputs = model(batch)
+        loss = 0
+        for i in range(len(outputs)):
+            loss += criteria[i](outputs[i],batch[i+1])
+        loss.backward()
+        optimizer.step()
+        optimizer.zero_grad()
 
-#         print("Train loss: ", loss)
-#         print("Train accuracy: ", accuracy(batch[0], outputs[0]))
+        print("Train loss: ", loss)
+        print("Train accuracy: ", accuracy(batch[0], outputs[0]))
 
-#     state = {
-#         'epoch': epoch,
-#         'state_dict': model.state_dict(),
-#         'optimizer': optimizer.state_dict(),
-#     }
-#     torch.save(state, f"./ckpts/bert_{epoch}.pt")
+    state = {
+        'epoch': epoch,
+        'state_dict': model.state_dict(),
+        'optimizer': optimizer.state_dict(),
+    }
+    torch.save(state, f"./ckpts/bert_{epoch}.pt")
 
-#     model.eval()
-#     with torch.no_grad():
-#         for val_batch in val_ds:
-#             val_outputs = model(val_batch)
-#             val_loss = 0
-#             for i in range(len(val_outputs)):
-#                 val_loss += criteria[i](val_outputs[i], val_batch[i+1])
+    model.eval()
+    with torch.no_grad():
+        for val_batch in val_ds:
+            val_outputs = model(val_batch)
+            val_loss = 0
+            for i in range(len(val_outputs)):
+                val_loss += criteria[i](val_outputs[i], val_batch[i+1])
 
-#             print("Val loss: ", loss)
-#             print("val accuracy: ", accuracy(val_batch[0], val_outputs[0]))
+            print("Val loss: ", loss)
+            print("val accuracy: ", accuracy(val_batch[0], val_outputs[0]))
 
+
+
+# ----------------------------- OLD ------------------------------------------#
 # input_ids, attn_masks = bb._prepare_input(essays)
 # outputs = bb.forward(input_ids[:5], attn_masks[:5], labels[:5].unsqueeze(0))
 
