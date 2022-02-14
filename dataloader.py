@@ -115,18 +115,18 @@ class WASSADataset(torch.utils.data.Dataset):
         cleaned_text = self.clean_single_line(self.essays[idx])
 
         return (cleaned_text,
-                self.EMOTION_DICT[self.emotion[idx]],
-                self.empathy[idx],
-                self.distress[idx],
-                self.personality_conscientiousness[idx],
-                self.personality_openess[idx],
-                self.personality_extraversion[idx],
-                self.personality_agreeableness[idx],
-                self.personality_stability[idx],
-                self.iri_perspective_taking[idx],
-                self.iri_fantasy[idx],
-                self.iri_personal_distress[idx],
-                self.iri_empathatic_concern[idx],
+                torch.tensor(self.EMOTION_DICT[self.emotion[idx]]),
+                torch.tensor(self.empathy[idx]),
+                torch.tensor(self.distress[idx]),
+                torch.tensor(self.personality_conscientiousness[idx]),
+                torch.tensor(self.personality_openess[idx]),
+                torch.tensor(self.personality_extraversion[idx]),
+                torch.tensor(self.personality_agreeableness[idx]),
+                torch.tensor(self.personality_stability[idx]),
+                torch.tensor(self.iri_perspective_taking[idx]),
+                torch.tensor(self.iri_fantasy[idx]),
+                torch.tensor(self.iri_personal_distress[idx]),
+                torch.tensor(self.iri_empathatic_concern[idx]),
                )
 
 
