@@ -54,7 +54,7 @@ def accuracy(true, pred):
 
 def f1_loss(y_true: torch.Tensor, y_pred: torch.Tensor) -> torch.Tensor:
     f1 = f1_score(y_true.detach().cpu().numpy(),
-                  np.argmax(y_pred.detach().cpu().numpy(), axis=-1))
+                  np.argmax(y_pred.detach().cpu().numpy(), axis=-1), average='macro')
     return f1
 
 device = torch.device(
