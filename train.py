@@ -71,9 +71,8 @@ for epoch in range(3):
         
         loss = 0
         for i in range(len(outputs)):
-            modality_loss = criteria[i](outputs[i],batch[i+1])
-            modality_loss.backward(retain_graph=True)
-            loss += modality_loss
+            loss += criteria[i](outputs[i],batch[i+1])
+            
         # loss
         optimizer.step()
         optimizer.zero_grad()
@@ -105,8 +104,7 @@ for epoch in range(3):
             val_loss = 0
             for i in range(len(val_outputs)):
                 
-                val_modality_loss = criteria[i](val_outputs[i], val_batch[i+1])
-                val_loss += modality_loss
+                val_loss += criteria[i](val_outputs[i], val_batch[i+1]) 
 
             print("Val loss: ", val_loss)
             print("val accuracy: ", accuracy(val_batch[1], val_outputs[0]))
