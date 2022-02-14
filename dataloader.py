@@ -32,7 +32,7 @@ class WASSADataset(torch.utils.data.Dataset):
         self.nlp = spacy.load('en_core_web_sm')
 
         # Input
-        self.essays = self.raw_df["essays"]
+        self.essays = self.raw_df["essay"]
 
         # self.gender = self.raw_df["gender"]
         # self.education = self.raw_df["education"]
