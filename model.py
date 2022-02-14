@@ -85,7 +85,8 @@ class EssayToAllBERT(nn.Module):
                         return_attention_mask=True,
                         max_length=self.cfg.maxlen,
                         padding='max_length',
-                        truncation=True)
+                        truncation=True,
+                        return_tensors="pt")
         print({k:(type(v)) for k,v in x.items()})
         x = x.to(self.device)
 
