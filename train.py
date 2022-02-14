@@ -21,7 +21,7 @@ cfg = get_config(
 # essays = dataloader.get_track_1_inputs()
 # labels = dataloader.get_track_1_outputs()
 
-model = EssayToAllBERT()
+model = EssayToAllBERT(cfg)
 
 ds = WASSADataset('./messages_train_ready_for_WS.tsv', cfg)
 
