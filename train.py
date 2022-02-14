@@ -23,7 +23,6 @@ cfg = get_config(
 model = EssayToAllBERT()
 
 ds = WASSADataset('./messages_train_ready_for_WS.tsv', cfg)
-ds = torch.utils.data.DataLoader(ds, batch_size = 8, shuffle = True)
 
 train_size = int(len(ds) * 0.8)
 val_size = len(ds) - train_size
