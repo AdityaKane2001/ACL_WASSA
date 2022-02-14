@@ -80,17 +80,9 @@ class EssayToAllBERT(nn.Module):
         self.iri_empathatic_concern = self.iri_empathatic_concern.to(device)
 
     def forward(self, batch):
-        x = self.tokenizer(text = batch[0],
-                        add_special_tokens=True,
-                        return_attention_mask=True,
-                        max_length=self.cfg.maxlen,
-                        padding='max_length',
-                        truncation=True,
-                        return_tensors="pt")
+        
 
-        x = x.to(self.device)
-
-        x = self.bert(**x)[1] # (batch_size, hidden_size)
+        x = self.bert(**batch[0])[1] # (batch_size, hidden_size)
         
         emotion = self.emotion_lin(x)
         emotion = self.emotion_softmax(emotion)

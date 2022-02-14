@@ -1,3 +1,4 @@
+from jax import device_count
 from dataloader import WASSADataset
 from config import get_config, get_static_config
 from utils import *
@@ -44,12 +45,25 @@ def accuracy(true, pred):
     return float(100 * acc.sum() / len(acc))
 
 
+torch.device(
+    "cuda") if torch.cuda.is_available() else torch.device("cpu")
+
 
 for epoch in range(3):
     print("Epoch:", epoch)
     for batchnum, batch in enumerate(train_ds):
         
         print("Batch:", batchnum)
+        batch[0] = model.tokenizer(text=batch[0],
+                                   add_special_tokens=True,
+                                   return_attention_mask=True,
+                                   max_length=cfg.maxlen,
+                                   padding='max_length',
+                                   truncation=True,
+                                   return_tensors="pt")
+
+        batch = batch.to(device)
+
         outputs = model(batch)
 
         print([output.shape for output in outputs])
