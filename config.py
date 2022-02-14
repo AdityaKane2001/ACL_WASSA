@@ -3,7 +3,7 @@ import ml_collections as mlc
 def get_config(
     remove_stopwords: bool = True,
     lemmatize: bool = True,
-    maxlen: int = 200,
+    maxlen: int = 100,
     num_classes :int = 7,
     batch_size: int = 64,
     mode: str = "train",

@@ -9,7 +9,7 @@ import torch
 cfg = get_config(
     remove_stopwords=False,
     lemmatize=False,
-    maxlen=200,
+    maxlen=100,
     num_classes=7,
     batch_size=64,
     mode="train",
