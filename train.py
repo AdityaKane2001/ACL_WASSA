@@ -104,12 +104,12 @@ for epoch in range(cfg.epochs):
                              accuracy=np.mean(epoch_acc),
                              f1=np.mean(epoch_f1))
 
-    # state = {
-    #     'epoch': epoch,
-    #     'state_dict': model.state_dict(),
-    #     'optimizer': optimizer.state_dict(),
-    # }
-    # torch.save(state, f"./ckpts/bert_{epoch}.pt")
+    state = {
+        'epoch': epoch,
+        'state_dict': model.state_dict(),
+        'optimizer': optimizer.state_dict(),
+    }
+    torch.save(state, f"./ckpts/bert_{epoch}.pt")
 
     # validation loop
     val_epoch_loss = []
@@ -143,9 +143,13 @@ for epoch in range(cfg.epochs):
     progress_bar.close()
     tqdm.write(
         f"Val loss: {np.mean(val_epoch_loss)} Val accuracy: {np.mean(val_epoch_acc)} Val f1: {np.mean(val_epoch_f1)}")
-    
+
     wandb.log({
         "epoch": epoch,
+        "train_conf_mat": wandb.plot.confusion_matrix(y_true=batch[1].detach().cpu().numpy(), preds=outputs[0].detach().cpu().numpy(),
+                                                class_names=("anger","disgust","fear","joy","neutral","sadness","surprise")),
+        "val_conf_mat": wandb.plot.confusion_matrix(y_true=val_batch[1].detach().cpu().numpy(), preds=val_outputs[0].detach().cpu().numpy(),
+                                                      class_names=("anger", "disgust", "fear", "joy", "neutral", "sadness", "surprise")),
         "train loss": np.mean(epoch_loss),
         "train accuracy":  np.mean(epoch_acc),
         "train macro f1":  np.mean(epoch_f1),

@@ -2,7 +2,7 @@ import pandas as pd
 import torch
 import numpy as np
 
-from sklearn.metrics import f1_score
+from sklearn.metrics import f1_score, confusion_matrix
 from torch import nn
 from datetime import datetime, timedelta
 
@@ -36,3 +36,7 @@ def f1_loss(y_true: torch.Tensor, y_pred: torch.Tensor) -> torch.Tensor:
     f1 = f1_score(y_true.detach().cpu().numpy(),
                   np.argmax(y_pred.detach().cpu().numpy(), axis=-1), average='macro')
     return f1
+
+def confusion_matrix(y_true, y_pred):
+    return confusion_matrix(y_true.detach().cpu().numpy(),
+                            np.argmax(y_pred.detach().cpu().numpy(), axis=-1))
