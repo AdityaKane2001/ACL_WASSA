@@ -87,10 +87,10 @@ class EssayToAllBERT(nn.Module):
                         padding='max_length',
                         truncation=True,
                         return_tensors="pt")
-                        
+
         x = x.to(self.device)
 
-        x = self.bert(**x)[0] # (batch_size, hidden_size)
+        x = self.bert(**x)[1] # (batch_size, hidden_size)
         
         emotion = self.emotion_lin(x)
         emotion = self.emotion_softmax(emotion)
