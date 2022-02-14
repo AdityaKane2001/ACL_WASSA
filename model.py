@@ -101,15 +101,15 @@ class EssayToAllBERT(nn.Module):
         iri_personal_distress = self.iri_personal_distress(x)
         iri_empathatic_concern = self.iri_empathatic_concern(x)
 
-        return (emotion)
-                # empathy,
-                # distress,
-                # personality_conscientiousness,
-                # personality_openess,
-                # personality_extraversion,
-                # personality_agreeableness,
-                # personality_stability,
-                # iri_perspective_taking,
-                # iri_fantasy,
-                # iri_personal_distress,
-                # iri_empathatic_concern)
+        return (emotion,
+                empathy,
+                distress,
+                personality_conscientiousness,
+                personality_openess,
+                personality_extraversion,
+                personality_agreeableness,
+                personality_stability,
+                iri_perspective_taking,
+                iri_fantasy,
+                iri_personal_distress,
+                iri_empathatic_concern)
