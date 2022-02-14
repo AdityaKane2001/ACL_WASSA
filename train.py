@@ -104,9 +104,11 @@ for epoch in range(3):
             val_outputs = model(val_batch)
             val_loss = 0
             for i in range(len(val_outputs)):
-                val_loss += criteria[i](val_outputs[i], val_batch[i+1])
+                
+                val_modality_loss = criteria[i](val_outputs[i], val_batch[i+1])
+                val_loss += modality_loss
 
-            print("Val loss: ", loss)
+            print("Val loss: ", val_loss)
             print("val accuracy: ", accuracy(val_batch[1], val_outputs[0]))
 
 
