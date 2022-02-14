@@ -35,23 +35,23 @@ class EssayToAllBERT(nn.Module):
             "bert-base-uncased", do_lower_case=True)
         self.bert = BertModel.from_pretrained(
             "bert-base-uncased")
-        self.emotion_lin = nn.Linear(self.model.config.hidden_size, 7)
+        self.emotion_lin = nn.Linear(self.bert.config.hidden_size, 7)
         self.emotion_softmax = torch.nn.Softmax(dim=-1)
 
-        self.empathy = nn.Linear(self.model.config.hidden_size, 1)
-        self.destress = nn.Linear(self.model.config.hidden_size, 1)
+        self.empathy = nn.Linear(self.bert.config.hidden_size, 1)
+        self.destress = nn.Linear(self.bert.config.hidden_size, 1)
 
         self.personality_conscientiousness = nn.Linear(
-            self.model.config.hidden_size, 1)
-        self.personality_openess = nn.Linear(self.model.config.hidden_size, 1)
-        self.personality_extraversion = nn.Linear(self.model.config.hidden_size, 1)
-        self.personality_agreeableness = nn.Linear(self.model.config.hidden_size, 1)
-        self.personality_stability = nn.Linear(self.model.config.hidden_size, 1)
+            self.bert.config.hidden_size, 1)
+        self.personality_openess = nn.Linear(self.bert.config.hidden_size, 1)
+        self.personality_extraversion = nn.Linear(self.bert.config.hidden_size, 1)
+        self.personality_agreeableness = nn.Linear(self.bert.config.hidden_size, 1)
+        self.personality_stability = nn.Linear(self.bert.config.hidden_size, 1)
         
-        self.iri_perspective_taking = nn.Linear(self.model.config.hidden_size, 1)
-        self.iri_fantasy = nn.Linear(self.model.config.hidden_size, 1)
-        self.iri_personal_distress = nn.Linear(self.model.config.hidden_size, 1)
-        self.iri_empathatic_concern = nn.Linear(self.model.config.hidden_size, 1)
+        self.iri_perspective_taking = nn.Linear(self.bert.config.hidden_size, 1)
+        self.iri_fantasy = nn.Linear(self.bert.config.hidden_size, 1)
+        self.iri_personal_distress = nn.Linear(self.bert.config.hidden_size, 1)
+        self.iri_empathatic_concern = nn.Linear(self.bert.config.hidden_size, 1)
 
         self.device = torch.device(
             "cuda") if torch.cuda.is_available() else torch.device("cpu")
