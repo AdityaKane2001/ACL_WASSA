@@ -10,7 +10,11 @@ import torch
 
 warnings.filterwarnings("ignore")
 
+#----------- Config -----------------------------#
+
+# Check before every run
 cfg = mlc.ConfigDict()
+
 cfg.model="bert_base"
 cfg.remove_stopwords=True
 cfg.lemmatize=True

@@ -1,23 +1,8 @@
 import transformers
 
-from transformers import BertTokenizer, BertModel, BertForSequenceClassification
+from transformers import BertTokenizer, BertModel
 import torch
-from torch.utils.data import DataLoader
 from torch import nn
-
-
-# train_dataloader = DataLoader(small_train_dataset, shuffle=True, batch_size=8)
-# eval_dataloader = DataLoader(small_eval_dataset, batch_size=8)
-
-# tokenizer = BertTokenizer.from_pretrained("bert-base-uncased")
-# model = BertModel.from_pretrained("bert-base-uncased")
-
-# inputs = tokenizer("Hello, my dog is cute", return_tensors="pt")
-# outputs = model(**inputs)
-
-# last_hidden_states = outputs.last_hidden_state
-
-
 
 class EssayToAllBERT(nn.Module):
     """
