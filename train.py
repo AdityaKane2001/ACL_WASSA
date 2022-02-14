@@ -52,7 +52,7 @@ for epoch in range(3):
         print("Batch:", batchnum)
         outputs = model(batch)
 
-        print((output.shape for output in outputs))
+        print([output.shape for output in outputs])
         
         loss = 0
         for i in range(len(outputs)):
