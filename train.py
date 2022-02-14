@@ -28,7 +28,8 @@ cfg.classification_loss="categorical_crossentropy"
 cfg.regression_loss="mean_squared_error"
 
 #------------ Data -------------------------------#
-ds = WASSADataset('./messages_train_ready_for_WS.tsv', cfg)
+ds = WASSADataset(
+    '../input/wassa-input-data/messages_train_ready_for_WS.tsv', cfg)
 
 train_size = int(len(ds) * 0.8)
 val_size = len(ds) - train_size
