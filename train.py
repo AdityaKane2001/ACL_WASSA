@@ -42,8 +42,8 @@ optimizer = torch.optim.Adam(model.parameters(), lr=0.0001)
 
 def accuracy(true, pred):
     # print(type(true), type(pred))
-    acc = (true == pred.argmax(-1)).float().detach().numpy()
-    return float(100 * acc.sum() / len(acc))
+    acc = (true == pred.argmax(-1)).float().detach().sum()
+    return float(100 * acc / len(acc))
 
 
 device = torch.device(
