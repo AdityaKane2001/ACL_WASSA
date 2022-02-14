@@ -19,6 +19,7 @@ cfg = get_config(
     maxlen=100,
     num_classes=7,
     batch_size=64,
+    epochs=20,
     mode="train",
     classification_loss="categorical_crossentropy",
     regression_loss="mean_squared_error"
@@ -64,7 +65,7 @@ device = torch.device(
     "cuda") if torch.cuda.is_available() else torch.device("cpu")
 
 
-for epoch in range(3):
+for epoch in range(cfg.epochs):
     print("Epoch:", epoch)
     epoch_loss = []
     epoch_acc = []

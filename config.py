@@ -3,9 +3,10 @@ import ml_collections as mlc
 def get_config(
     remove_stopwords: bool = True,
     lemmatize: bool = True,
-    maxlen: int = 100,
+    maxlen: int = 200,
     num_classes :int = 7,
     batch_size: int = 64,
+    epochs:int=20,
     mode: str = "train",
     bert_variant: str = "vanilla",
     classification_loss: str = "categorical_crossentropy",
@@ -13,12 +14,12 @@ def get_config(
 ):
     cfg = mlc.ConfigDict()
 
-    # Text preprocessing cfg:
     cfg.remove_stopwords = remove_stopwords
     cfg.lemmatize = lemmatize
     cfg.maxlen = maxlen
     cfg.batch_size = batch_size
     cfg.num_classes = num_classes
+    cfg.epochs = epochs
     cfg.mode = mode
     cfg.bert_variant = bert_variant
     cfg.classification_loss = classification_loss
