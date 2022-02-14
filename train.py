@@ -90,7 +90,17 @@ for epoch in range(3):
     model.eval()
     with torch.no_grad():
         for val_batch in val_ds:
-            val_outputs = model(val_batch)
+            val_batch[0] = model.tokenizer(text=val_batch[0],
+                                       add_special_tokens=True,
+                                       return_attention_mask=True,
+                                       max_length=cfg.maxlen,
+                                       padding='max_length',
+                                       truncation=True,
+                                       return_tensors="pt")
+
+            val_batch = [elem.to(device) for elem in val_batch]
+
+            val_outputs = model(val_batch[0])
             val_loss = 0
             for i in range(len(val_outputs)):
                 val_loss += criteria[i](val_outputs[i], val_batch[i+1])
