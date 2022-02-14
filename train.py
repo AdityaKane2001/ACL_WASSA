@@ -41,8 +41,8 @@ optimizer = torch.optim.Adam(model.parameters(), lr=0.0001)
 
 
 def accuracy(true, pred):
-    print(type(true), type(pred))
-    acc = (torch.tensor(true, dtype=torch.int32) == pred.argmax(-1)).float().detach().numpy()
+    # print(type(true), type(pred))
+    acc = (true == pred.argmax(-1)).float().detach().numpy()
     return float(100 * acc.sum() / len(acc))
 
 
@@ -66,7 +66,7 @@ for epoch in range(3):
         batch = [elem.to(device) for elem in batch]
 
         outputs = model(batch)
-        print(batch[1].dtype)
+        
         
         loss = 0
         for i in range(len(outputs)):
@@ -76,7 +76,7 @@ for epoch in range(3):
         optimizer.zero_grad()
 
         print("Train loss: ", loss)
-        print("Train accuracy: ", accuracy(batch[0], outputs[0]))
+        print("Train accuracy: ", accuracy(batch[1], outputs[0]))
 
     state = {
         'epoch': epoch,
