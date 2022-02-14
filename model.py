@@ -33,7 +33,8 @@ class EssayToAllBERT(nn.Module):
         self.cfg = cfg
         super().__init__()
         self.tokenizer = BertTokenizer.from_pretrained(
-            "bert-base-uncased", do_lower_case=True, requires_grad=False)
+            "bert-base-uncased", do_lower_case=True)
+
         self.bert = BertModel.from_pretrained(
             "bert-base-uncased")
         self.emotion_lin = nn.Linear(self.bert.config.hidden_size, self.cfg.num_classes)
@@ -100,15 +101,15 @@ class EssayToAllBERT(nn.Module):
         iri_personal_distress = self.iri_personal_distress(x)
         iri_empathatic_concern = self.iri_empathatic_concern(x)
 
-        return (emotion,
-                empathy,
-                distress,
-                personality_conscientiousness,
-                personality_openess,
-                personality_extraversion,
-                personality_agreeableness,
-                personality_stability,
-                iri_perspective_taking,
-                iri_fantasy,
-                iri_personal_distress,
-                iri_empathatic_concern)
+        return (emotion)
+                # empathy,
+                # distress,
+                # personality_conscientiousness,
+                # personality_openess,
+                # personality_extraversion,
+                # personality_agreeableness,
+                # personality_stability,
+                # iri_perspective_taking,
+                # iri_fantasy,
+                # iri_personal_distress,
+                # iri_empathatic_concern)

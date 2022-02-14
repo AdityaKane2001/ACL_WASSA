@@ -46,7 +46,7 @@ val_ds = torch.utils.data.DataLoader(
 
 criteria = get_criteria(cfg)
 
-optimizer = torch.optim.Adam(model.parameters(), lr=0.00001)
+optimizer = torch.optim.Adam(model.parameters(), lr=0.0001)
 
 
 def accuracy(true, pred):
@@ -84,9 +84,9 @@ for epoch in range(3):
 
         outputs = model(batch)
         
-        loss = 0
-        for i in range(len(outputs)):
-            loss += criteria[i](outputs[i],batch[i+1])
+        loss = criteria[0](outputs[0], batch[1])
+        # for i in range(len(outputs)):
+        #     loss += criteria[i](outputs[i],batch[i+1])
         
         loss.backward()
         
