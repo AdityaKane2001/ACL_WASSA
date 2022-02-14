@@ -6,6 +6,9 @@ from model import *
 
 import numpy as np
 
+import warnings
+warnings.filterwarnings("ignore")
+
 from sklearn.metrics import f1_score
 
 import torch
