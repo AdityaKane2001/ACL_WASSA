@@ -69,11 +69,12 @@ for epoch in range(3):
 
         outputs = model(batch)
         
-        
         loss = 0
         for i in range(len(outputs)):
-            loss += criteria[i](outputs[i],batch[i+1])
-        loss.backward()
+            modality_loss = criteria[i](outputs[i],batch[i+1])
+            modality_loss.backward()
+            loss += modality_loss
+        # loss
         optimizer.step()
         optimizer.zero_grad()
 
