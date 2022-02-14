@@ -65,9 +65,10 @@ for epoch in range(3):
     print("Epoch:", epoch)
     epoch_loss = []
     epoch_acc = []
+    epoch_f1 = []
     for batchnum, batch in enumerate(train_ds):
         
-        print("Batch:", batchnum)
+        # print("Batch:", batchnum)
         batch[0] = model.tokenizer(text=batch[0],
                                    add_special_tokens=True,
                                    return_attention_mask=True,
@@ -91,14 +92,17 @@ for epoch in range(3):
         optimizer.zero_grad()
 
         acc = accuracy(batch[1], outputs[0])
+        f1 = f1_loss(batch[1], outputs[0])
+        
         epoch_loss.append(loss)
         epoch_acc.append(acc)
+        epoch_f1.append(f1)
 
-        f1 = f1_loss(batch[1], outputs[0])
+        
 
-        print("Train loss: ", loss)
-        print("Train accuracy: ", acc)
-        print("Train F1:", f1)
+    print("Train loss: ", np.mean(epoch_loss) )
+    print("Train accuracy: ", np.mean(epoch_acc))
+    print("Train F1:", np.mean(epoch_f1))
 
     state = {
         'epoch': epoch,
@@ -106,7 +110,9 @@ for epoch in range(3):
         'optimizer': optimizer.state_dict(),
     }
     torch.save(state, f"./ckpts/bert_{epoch}.pt")
-
+    val_epoch_loss = []
+    val_epoch_acc = []
+    val_epoch_f1 = []
     model.eval()
     with torch.no_grad():
         for val_batch in val_ds:
@@ -127,9 +133,15 @@ for epoch in range(3):
                 val_loss += criteria[i](val_outputs[i], val_batch[i+1]) 
 
             val_f1 = f1_loss(val_batch[1], val_outputs[0])
-            print("Val loss: ", val_loss)
-            print("val accuracy: ", accuracy(val_batch[1], val_outputs[0]))
-            print("Val f1: ", val_f1)
+            val_acc = accuracy(val_batch[1], val_outputs[0])
+
+            val_epoch_loss.append(val_loss)
+            val_epoch_acc.append(val_acc)
+            val_epoch_f1.append(val_f1)
+
+    print("Val loss: ", np.mean(val_epoch_loss))
+    print("val accuracy: ", np.mean(val_epoch_acc))
+    print("Val f1: ", np.mean(val_epoch_f1))
 
 
 
