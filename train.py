@@ -33,9 +33,9 @@ val_size = len(ds) - train_size
 train_ds, val_ds = torch.utils.data.random_split(
     ds, [train_size, val_size])
 
-train_ds = torch.utils.data.DataLoader(train_ds, batch_size=cfg.batch_size, shuffle=True)
+train_ds = torch.utils.data.DataLoader(train_ds, batch_size=cfg.batch_size, shuffle=True, drop_last=True)
 val_ds = torch.utils.data.DataLoader(
-    val_ds, batch_size=cfg.batch_size, shuffle=False)
+    val_ds, batch_size=cfg.batch_size, shuffle=False, drop_last=True)
 
 criteria = get_criteria(cfg)
 
