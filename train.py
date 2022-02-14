@@ -12,8 +12,8 @@ warnings.filterwarnings("ignore")
 
 cfg = mlc.ConfigDict()
 cfg.model="bert_base"
-cfg.remove_stopwords=False
-cfg.lemmatize=False
+cfg.remove_stopwords=True
+cfg.lemmatize=True
 cfg.maxlen=100
 cfg.num_classes=7
 cfg.batch_size=64
@@ -64,7 +64,6 @@ wandb.init(entity="compyle",
 for epoch in range(cfg.epochs):
     progress_bar = tqdm(range(len(train_ds)))
     model.train()
-    print("Epoch:", epoch)
     epoch_loss = []
     epoch_acc = []
     epoch_f1 = []
