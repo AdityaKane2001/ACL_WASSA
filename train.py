@@ -98,8 +98,8 @@ for epoch in range(3):
         f1 = f1_loss(batch[1], outputs[0])
         
         epoch_loss.append(loss.detach().cpu().numpy())
-        epoch_acc.append(acc.detach().cpu().numpy())
-        epoch_f1.append(f1.detach().cpu().numpy())
+        epoch_acc.append(acc)
+        epoch_f1.append(f1)
 
         
 
@@ -139,8 +139,8 @@ for epoch in range(3):
             val_acc = accuracy(val_batch[1], val_outputs[0])
 
             val_epoch_loss.append(val_loss.detach().cpu().numpy())
-            val_epoch_acc.append(val_acc.detach().cpu().numpy())
-            val_epoch_f1.append(val_f1.detach().cpu().numpy())
+            val_epoch_acc.append(val_acc)
+            val_epoch_f1.append(val_f1)
 
     print("Val loss: ", np.mean(val_epoch_loss))
     print("val accuracy: ", np.mean(val_epoch_acc))
