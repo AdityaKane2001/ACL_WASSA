@@ -4,6 +4,7 @@ def get_config(
     remove_stopwords: bool = True,
     lemmatize: bool = True,
     maxlen: int = 200,
+    num_classes :int = 7,
     mode: str = "train",
     bert_variant: str = "vanilla",
     classification_loss: str = "categorical_crossentropy",
@@ -15,6 +16,7 @@ def get_config(
     cfg.remove_stopwords = remove_stopwords
     cfg.lemmatize = lemmatize
     cfg.maxlen = maxlen
+    cfg.num_classes = num_classes
     cfg.mode = mode
     cfg.bert_variant = bert_variant
     cfg.classification_loss = classification_loss

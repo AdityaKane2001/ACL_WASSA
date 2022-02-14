@@ -29,13 +29,14 @@ class EssayToAllBERT(nn.Module):
     Total 11 Linear layers after transformers.BertModel instance
     
     """
-    def __init__(self):
+    def __init__(self, cfg):
+        self.cfg = cfg
         super().__init__()
         self.tokenizer = BertTokenizer.from_pretrained(
             "bert-base-uncased", do_lower_case=True)
         self.bert = BertModel.from_pretrained(
             "bert-base-uncased")
-        self.emotion_lin = nn.Linear(self.bert.config.hidden_size, 7)
+        self.emotion_lin = nn.Linear(self.bert.config.hidden_size, self.cfg.num_classes)
         self.emotion_softmax = torch.nn.Softmax(dim=-1)
 
         self.empathy = nn.Linear(self.bert.config.hidden_size, 1)
@@ -85,7 +86,7 @@ class EssayToAllBERT(nn.Module):
                         max_length=self.cfg.maxlen,
                         padding='max_length',
                         truncation=True)
-                        
+
         x = x.to(self.device)
 
         x = self.bert(**x)[0] # (batch_size, hidden_size)

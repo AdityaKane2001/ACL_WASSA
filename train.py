@@ -9,6 +9,7 @@ cfg = get_config(
     remove_stopwords=False,
     lemmatize=False,
     maxlen=200,
+    num_classes=7,
     mode="train",
     classification_loss="categorical_crossentropy",
     regression_loss="mean_squared_error"
