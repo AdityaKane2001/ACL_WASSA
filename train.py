@@ -100,13 +100,13 @@ for epoch in range(3):
 
             val_batch = [elem.to(device) for elem in val_batch]
 
-            val_outputs = model(val_batch[0])
+            val_outputs = model(val_batch)
             val_loss = 0
             for i in range(len(val_outputs)):
                 val_loss += criteria[i](val_outputs[i], val_batch[i+1])
 
             print("Val loss: ", loss)
-            print("val accuracy: ", accuracy(val_batch[0], val_outputs[0]))
+            print("val accuracy: ", accuracy(val_batch[1], val_outputs[0]))
 
 
 
