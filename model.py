@@ -39,7 +39,7 @@ class EssayToAllBERT(nn.Module):
         self.emotion_softmax = torch.nn.Softmax(dim=-1)
 
         self.empathy = nn.Linear(self.bert.config.hidden_size, 1)
-        self.destress = nn.Linear(self.bert.config.hidden_size, 1)
+        self.distress = nn.Linear(self.bert.config.hidden_size, 1)
 
         self.personality_conscientiousness = nn.Linear(
             self.bert.config.hidden_size, 1)
