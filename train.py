@@ -51,6 +51,7 @@ for epoch in range(3):
         
         print("Batch:", batchnum)
         outputs = model(batch)
+        print(outputs)
         loss = 0
         for i in range(len(outputs)):
             loss += criteria[i](outputs[i],batch[i+1])
