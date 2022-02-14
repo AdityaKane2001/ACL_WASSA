@@ -41,6 +41,7 @@ optimizer = torch.optim.Adam(model.parameters(), lr=0.0001)
 
 
 def accuracy(true, pred):
+    print(true == pred.argmax(-1))
     acc = (true == pred.argmax(-1)).float().detach().numpy()
     return float(100 * acc.sum() / len(acc))
 
@@ -66,7 +67,6 @@ for epoch in range(3):
 
         outputs = model(batch)
 
-        print([output.shape for output in outputs])
         
         loss = 0
         for i in range(len(outputs)):
