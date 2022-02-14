@@ -144,7 +144,7 @@ for epoch in range(cfg.epochs):
 
     tqdm.write(
         f"Val loss: {np.mean(val_epoch_loss)} Val accuracy: {np.mean(val_epoch_acc)} Val f1: {np.mean(val_epoch_f1)}")
-    
+    progress_bar.close()
     wandb.log({
         "epoch": epoch,
         "train loss": np.mean(epoch_loss),
