@@ -46,7 +46,7 @@ val_ds = torch.utils.data.DataLoader(
 
 criteria = get_criteria(cfg)
 
-optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
+optimizer = torch.optim.Adam(model.parameters(), lr=0.00001)
 
 
 def accuracy(true, pred):

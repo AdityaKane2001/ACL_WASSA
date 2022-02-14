@@ -33,7 +33,7 @@ class EssayToAllBERT(nn.Module):
         self.cfg = cfg
         super().__init__()
         self.tokenizer = BertTokenizer.from_pretrained(
-            "bert-base-uncased", do_lower_case=True)
+            "bert-base-uncased", do_lower_case=True, requires_grad=False)
         self.bert = BertModel.from_pretrained(
             "bert-base-uncased")
         self.emotion_lin = nn.Linear(self.bert.config.hidden_size, self.cfg.num_classes)
