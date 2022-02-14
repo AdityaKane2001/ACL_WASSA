@@ -104,6 +104,7 @@ class WASSADataset(torch.utils.data.Dataset):
                     # else:
                         # lemmatized_text.append(word.lower())
             text = " ".join([word.lower() for word in lemmatized_text])
+        return text
 
     def __len__(self):
         return len(self.essays)
