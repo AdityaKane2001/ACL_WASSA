@@ -72,7 +72,7 @@ for epoch in range(3):
         loss = 0
         for i in range(len(outputs)):
             modality_loss = criteria[i](outputs[i],batch[i+1])
-            modality_loss.backward()
+            modality_loss.backward(retain_graph=True)
             loss += modality_loss
         # loss
         optimizer.step()
