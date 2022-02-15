@@ -6,6 +6,7 @@ import numpy as np
 from tqdm.auto import tqdm
 import wandb
 
+import os
 import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
@@ -189,8 +190,7 @@ class EssayToEmotionEmpathyDistressBERT(nn.Module):
             ax.get_figure().savefig("confusion.jpg")
             wandb.log({"val_confusion_matrix": wandb.Image("confusion.jpg")},
                       commit=False)
-
-            plt.show()
+            os.remove("confusion.jpg")
 
             wandb.log({
                 "epoch": epoch,
