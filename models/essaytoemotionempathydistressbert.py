@@ -119,6 +119,9 @@ class EssayToEmotionEmpathyDistressBERT(nn.Module):
                 np_batch_outputs = batch["outputs"][0].detach().cpu().numpy()
                 np_outputs = outputs[0].detach().cpu().numpy()
 
+                print(np_outputs.shape)
+                print(np_batch_outputs.shape)
+
                 acc = accuracy(np_batch_outputs, np_outputs)
                 f1 = f1_loss(np_batch_outputs, np_outputs)
                 loss_ = loss.detach().cpu().numpy()
