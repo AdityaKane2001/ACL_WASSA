@@ -176,12 +176,9 @@ class EssayToEmotionEmpathyDistressBERT(nn.Module):
                     val_epoch_f1.append(val_f1)
             progress_bar.close()
 
-            tqdm.write(
-                f"Val loss: {np.mean(val_epoch_loss)} Val accuracy: {np.mean(val_epoch_acc)} Val f1: {np.mean(val_epoch_f1)}"
-            )
 
             val_cm = confusion_matrix(np_val_batch_outputs, np_val_outputs)
-            
+
             ax = sns.heatmap(val_cm,
                              annot=True,
                              xticklabels=self.class_names,
@@ -190,7 +187,7 @@ class EssayToEmotionEmpathyDistressBERT(nn.Module):
             
             ax.get_figure().savefig("confusion.jpg")
             
-            wandb.log({"val_confusion_matrix": wandb.Image("confusion.jpg")},
+            wandb.log({},
                       commit=False)
 
             wandb.log({
@@ -200,8 +197,10 @@ class EssayToEmotionEmpathyDistressBERT(nn.Module):
                 "train macro f1": np.mean(epoch_f1),
                 "val loss": np.mean(val_epoch_loss),
                 "val accuracy": np.mean(val_epoch_acc),
-                "val macro f1": np.mean(val_epoch_f1)
+                "val macro f1": np.mean(val_epoch_f1),
+                "val_confusion_matrix": wandb.Image("confusion.jpg")
             })
-
+            
+            plt.clf()
             os.remove("confusion.jpg")
             del ax
