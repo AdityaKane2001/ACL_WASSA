@@ -155,7 +155,7 @@ class EssayToAllBERT(nn.Module):
                 #     loss += criteria[i](outputs[i],batch[i+1])
 
                 loss.backward()
-
+                
                 # loss
                 optimizer.step()
                 optimizer.zero_grad()

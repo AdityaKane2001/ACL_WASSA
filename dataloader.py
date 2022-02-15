@@ -159,5 +159,5 @@ def get_dataset(cfg):
         train_ds = torch.utils.data.DataLoader(
             train_ds, batch_size=cfg.batch_size, shuffle=True, drop_last=True)
         val_ds = torch.utils.data.DataLoader(
-            val_ds, batch_size=cfg.batch_size, shuffle=False, drop_last=True)
+            val_ds, batch_size=val_size, shuffle=False, drop_last=True)
         return train_ds, val_ds

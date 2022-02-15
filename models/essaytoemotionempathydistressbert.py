@@ -116,7 +116,7 @@ class EssayToEmotionEmpathyDistressBERT(nn.Module):
                 #     loss += criteria[i](outputs[i],batch[i+1])
 
                 loss.backward()
-
+                
                 # loss
                 optimizer.step()
                 optimizer.zero_grad()
@@ -163,29 +163,30 @@ class EssayToEmotionEmpathyDistressBERT(nn.Module):
                     # for i in range(len(val_outputs)):
 
                     #     val_loss +=
-
-                    val_f1 = f1_loss(val_batch["outputs"][0], val_outputs[0])
+                    np_val_batch_outputs = val_batch["outputs"][0].detach().cpu().numpy()
+                    np_val_outputs = val_outputs[0].detach().cpu().numpy()
+                    
+                    val_f1 = f1_loss(np_val_batch_outputs, np_val_outputs)
                     val_acc = accuracy(val_batch["outputs"][0], val_outputs[0])
 
                     val_epoch_loss.append(val_loss.detach().cpu().numpy())
                     val_epoch_acc.append(val_acc)
                     val_epoch_f1.append(val_f1)
             progress_bar.close()
-
-
             
+
             tqdm.write(
                 f"Val loss: {np.mean(val_epoch_loss)} Val accuracy: {np.mean(val_epoch_acc)} Val f1: {np.mean(val_epoch_f1)}")
             
-            train_cm = confusion_matrix(batch["outputs"][0], outputs[0])
-            df_cm = pd.DataFrame(train_cm, index = ("anger", "disgust", "fear", "joy", "neutral", "sadness", "surprise"),
-                            columns = ("anger", "disgust", "fear", "joy", "neutral", "sadness", "surprise"))
-            plt.figure(figsize = (10,7))
-            sns.heatmap(df_cm, annot=True)
-            wandb.log({"train_confusion_matrix": plt}, commit=False)
+            # train_cm = confusion_matrix(batch["outputs"][0], outputs[0])
+            # df_cm = pd.DataFrame(train_cm, index = ("anger", "disgust", "fear", "joy", "neutral", "sadness", "surprise"),
+            #                 columns = ("anger", "disgust", "fear", "joy", "neutral", "sadness", "surprise"))
+            # plt.figure(figsize = (10,7))
+            # sns.heatmap(df_cm, annot=True)
+            # wandb.log({"train_confusion_matrix": plt}, commit=False)
 
             plt.clf()
-            val_cm = confusion_matrix(val_batch["outputs"][0], val_outputs[0])
+            val_cm = confusion_matrix(np_val_batch_outputs, np_val_outputs)
             df_cm = pd.DataFrame(val_cm, index =("anger", "disgust", "fear", "joy", "neutral", "sadness", "surprise"),
                             columns = ("anger", "disgust", "fear", "joy", "neutral", "sadness", "surprise"))
             plt.figure(figsize = (10,7))
