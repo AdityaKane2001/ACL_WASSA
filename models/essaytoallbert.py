@@ -125,8 +125,8 @@ class EssayToAllBERT(nn.Module):
         device = torch.device(
             "cuda") if torch.cuda.is_available() else torch.device("cpu")
 
-        optimizer = get_optimizer(self.cfg, self.parameters)
-        criteria = self.get_criteria(self.cfg)
+        optimizer = get_optimizer(self.cfg, self.parameters())
+        criteria = self.get_criteria()
 
         train_ds, val_ds = get_dataset(self.cfg)
 
@@ -146,7 +146,7 @@ class EssayToAllBERT(nn.Module):
                                                     truncation=True,
                                                     return_tensors="pt")
 
-                batch = [elem.to(device) for elem in batch]
+                batch = self.push_batch_to_device(batch)
 
                 outputs = self(batch)
 
@@ -155,14 +155,17 @@ class EssayToAllBERT(nn.Module):
                 #     loss += criteria[i](outputs[i],batch[i+1])
 
                 loss.backward()
-                
+
                 # loss
                 optimizer.step()
                 optimizer.zero_grad()
+                np_batch_outputs = batch["outputs"][0].detach().cpu().numpy()
+                np_outputs = outputs[0].detach().cpu().numpy()
 
-                acc = accuracy(batch["outputs"][0], outputs[0])
-                f1 = f1_loss(batch["outputs"][0], outputs[0])
+                acc = accuracy(np_batch_outputs, np_outputs)
+                f1 = f1_loss(np_batch_outputs, np_outputs)
                 loss_ = loss.detach().cpu().numpy()
+
                 epoch_loss.append(loss_)
                 epoch_acc.append(acc)
                 epoch_f1.append(f1)
@@ -195,30 +198,41 @@ class EssayToAllBERT(nn.Module):
                                                             truncation=True,
                                                             return_tensors="pt")
 
-                    val_batch = [elem.to(device) for elem in val_batch]
+                    val_batch = self.push_batch_to_device(val_batch)
 
                     val_outputs = self(val_batch)
-                    val_loss = criteria[0](val_outputs[0], val_batch[1])
+                    val_loss = criteria[0](
+                        val_outputs[0], val_batch["outputs"][0])
                     # for i in range(len(val_outputs)):
 
                     #     val_loss +=
+                    np_val_batch_outputs = val_batch["outputs"][0].detach(
+                    ).cpu().numpy()
+                    np_val_outputs = val_outputs[0].detach().cpu().numpy()
 
-                    val_f1 = f1_loss(val_batch["outputs"][0], val_outputs[0])
-                    val_acc = accuracy(val_batch["outputs"][0], val_outputs[0])
+                    val_f1 = f1_loss(np_val_batch_outputs, np_val_outputs)
+                    val_acc = accuracy(np_val_batch_outputs, np_val_outputs)
 
                     val_epoch_loss.append(val_loss.detach().cpu().numpy())
                     val_epoch_acc.append(val_acc)
                     val_epoch_f1.append(val_f1)
             progress_bar.close()
+
             tqdm.write(
                 f"Val loss: {np.mean(val_epoch_loss)} Val accuracy: {np.mean(val_epoch_acc)} Val f1: {np.mean(val_epoch_f1)}")
 
+            val_cm = confusion_matrix(np_val_batch_outputs, np_val_outputs)
+
+            ax = sns.heatmap(val_cm, annot=True, xticklabels=self.class_names,
+                             yticklabels=self.class_names, fmt="d")
+            ax.get_figure().savefig("confusion.jpg")
+            wandb.log({"val_confusion_matrix": wandb.Image(
+                "confusion.jpg")}, commit=False)
+
+            plt.show()
+
             wandb.log({
                 "epoch": epoch,
-                "train_conf_mat": wandb.plot.confusion_matrix(y_true=batch["outputs"][0].detach().cpu().numpy(), probs=outputs[0].detach().cpu().numpy(),
-                                                              class_names=("anger", "disgust", "fear", "joy", "neutral", "sadness", "surprise")),
-                "val_conf_mat": wandb.plot.confusion_matrix(y_true=val_batch["outputs"][0].detach().cpu().numpy(), preds=val_outputs[0].detach().cpu().numpy(),
-                                                            class_names=("anger", "disgust", "fear", "joy", "neutral", "sadness", "surprise")),
                 "train loss": np.mean(epoch_loss),
                 "train accuracy":  np.mean(epoch_acc),
                 "train macro f1":  np.mean(epoch_f1),
