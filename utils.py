@@ -12,14 +12,6 @@ def get_file_to_df(filepath):
     elif filepath.endswith(".csv"):
         return pd.read_csv(filepath)
 
-def get_criteria(cfg):
-    criteria = []
-    if cfg.classification_loss == "categorical_crossentropy":
-        criteria += [nn.CrossEntropyLoss()]
-    if cfg.regression_loss == "mean_squared_error":
-        criteria += [nn.MSELoss()] * 11
-    return criteria
-
 
 def get_run_timestr():
     now = datetime.now() + timedelta(minutes=330)
@@ -40,3 +32,8 @@ def f1_loss(y_true: torch.Tensor, y_pred: torch.Tensor) -> torch.Tensor:
 def confusion_matrix(y_true, y_pred):
     return confusion_matrix(y_true.detach().cpu().numpy(),
                             np.argmax(y_pred.detach().cpu().numpy(), axis=-1))
+
+
+def get_optimizer(cfg, params):
+    if cfg.optimizer == "adam":
+        return torch.optim.Adam(params, lr=0.0001)

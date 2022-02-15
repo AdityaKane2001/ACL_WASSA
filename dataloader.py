@@ -4,6 +4,7 @@ import nltk
 import numpy as np
 import re
 import torch
+import os
 
 import spacy
 
@@ -31,11 +32,11 @@ class WASSADataset(torch.utils.data.Dataset):
         # Input
         self.essays = self.raw_df["essay"]
 
-        # self.gender = self.raw_df["gender"]
-        # self.education = self.raw_df["education"]
-        # self.race = self.raw_df["race"]
-        # self.age = self.raw_df["age"]
-        # self.income = self.raw_df["income"]
+        self.gender = self.raw_df["gender"]
+        self.education = self.raw_df["education"]
+        self.race = self.raw_df["race"]
+        self.age = self.raw_df["age"]
+        self.income = self.raw_df["income"]
 
         # Outputs
         self.emotion = self.raw_df["emotion"]
@@ -112,25 +113,51 @@ class WASSADataset(torch.utils.data.Dataset):
     def __getitem__(self, idx):
         cleaned_text = self.clean_single_line(self.essays[idx])
 
-        return (cleaned_text,
-                torch.tensor(self.EMOTION_DICT[self.emotion[idx]]),
-                torch.tensor(self.empathy[idx], dtype=torch.float32),
-                torch.tensor(self.distress[idx], dtype=torch.float32),
-                torch.tensor(
-                    self.personality_conscientiousness[idx], dtype=torch.float32),
-                torch.tensor(
-                    self.personality_openess[idx], dtype=torch.float32),
-                torch.tensor(
-                    self.personality_extraversion[idx], dtype=torch.float32),
-                torch.tensor(
-                    self.personality_agreeableness[idx], dtype=torch.float32),
-                torch.tensor(
-                    self.personality_stability[idx], dtype=torch.float32),
-                torch.tensor(
-                    self.iri_perspective_taking[idx], dtype=torch.float32),
-                torch.tensor(self.iri_fantasy[idx], dtype=torch.float32),
-                torch.tensor(
-                    self.iri_personal_distress[idx], dtype=torch.float32),
-                torch.tensor(
-                    self.iri_empathatic_concern[idx], dtype=torch.float32)
-               )
+        return {"inputs":  # (inputs_tuple,outputs_tuple)
+                (   # Inputs tuple
+                    cleaned_text,
+                    torch.tensor(self.gender[idx]),
+                    torch.tensor(self.education[idx]),
+                    torch.tensor(self.race[idx]),
+                    torch.tensor(self.age[idx]),
+                    torch.tensor(self.income[idx]),
+                ),
+                "outputs":(   # Outputs tuple
+                    torch.tensor(self.EMOTION_DICT[self.emotion[idx]]),
+                    torch.tensor(self.empathy[idx], dtype=torch.float32),
+                    torch.tensor(self.distress[idx], dtype=torch.float32),
+                    torch.tensor(
+                        self.personality_conscientiousness[idx], dtype=torch.float32),
+                    torch.tensor(
+                        self.personality_openess[idx], dtype=torch.float32),
+                    torch.tensor(
+                        self.personality_extraversion[idx], dtype=torch.float32),
+                    torch.tensor(
+                        self.personality_agreeableness[idx], dtype=torch.float32),
+                    torch.tensor(
+                        self.personality_stability[idx], dtype=torch.float32),
+                    torch.tensor(
+                        self.iri_perspective_taking[idx], dtype=torch.float32),
+                    torch.tensor(self.iri_fantasy[idx], dtype=torch.float32),
+                    torch.tensor(
+                        self.iri_personal_distress[idx], dtype=torch.float32),
+                    torch.tensor(
+                        self.iri_empathatic_concern[idx], dtype=torch.float32)
+                )
+            }
+
+def get_dataset(cfg):
+    if cfg.dataset == "task1and2":
+        ds =  WASSADataset(os.path.join(cfg.dataset_root_dir, "messages_train_ready_for_WS.tsv"))
+        train_size = int(len(ds) * 0.8)
+
+        val_size = len(ds) - train_size
+
+        train_ds, val_ds = torch.utils.data.random_split(
+            ds, [train_size, val_size])
+
+        train_ds = torch.utils.data.DataLoader(
+            train_ds, batch_size=cfg.batch_size, shuffle=True, drop_last=True)
+        val_ds = torch.utils.data.DataLoader(
+            val_ds, batch_size=cfg.batch_size, shuffle=False, drop_last=True)
+        return train_ds, val_ds
