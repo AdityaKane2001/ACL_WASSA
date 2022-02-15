@@ -6,9 +6,12 @@ import numpy as np
 from tqdm.auto import tqdm
 import wandb
 
+import pandas as pd
+import seaborn as sns
+import matplotlib.pyplot as plt
 
-from ..dataloader import get_dataset
-from ..utils import *
+from dataloader import get_dataset
+from utils import *
 
 
 class EssayToEmotionEmpathyDistressBERT(nn.Module):
@@ -51,7 +54,7 @@ class EssayToEmotionEmpathyDistressBERT(nn.Module):
 
     def forward(self, batch):
 
-        x = self.bert(**batch[0])[1]  # (batch_size, hidden_size)
+        x = self.bert(**batch["inputs"][0])[1]  # (batch_size, hidden_size)
 
         emotion = self.emotion_lin(x)
         emotion = self.emotion_softmax(emotion)
@@ -71,12 +74,20 @@ class EssayToEmotionEmpathyDistressBERT(nn.Module):
             criteria += [nn.MSELoss()] * 2
         return criteria
 
+    def push_batch_to_device(self, batch):
+        dbatch = {
+            "inputs" : [obj.to(self.device) for obj in batch["inputs"]],
+            "outputs": [obj.to(self.device) for obj in batch["outputs"]]
+
+        }
+        return dbatch
+
     def fit(self):
         device = torch.device(
             "cuda") if torch.cuda.is_available() else torch.device("cpu")
 
-        optimizer = get_optimizer(self.cfg, self.parameters)
-        criteria = self.get_criteria(self.cfg)
+        optimizer = get_optimizer(self.cfg, self.parameters())
+        criteria = self.get_criteria()
 
         train_ds, val_ds = get_dataset(self.cfg)
 
@@ -96,7 +107,7 @@ class EssayToEmotionEmpathyDistressBERT(nn.Module):
                                                     truncation=True,
                                                     return_tensors="pt")
 
-                batch = [elem.to(device) for elem in batch]
+                batch = self.push_batch_to_device(batch)
 
                 outputs = self(batch)
 
@@ -145,10 +156,10 @@ class EssayToEmotionEmpathyDistressBERT(nn.Module):
                                                             truncation=True,
                                                             return_tensors="pt")
 
-                    val_batch = [elem.to(device) for elem in val_batch]
+                    val_batch = self.push_batch_to_device(val_batch)
 
                     val_outputs = self(val_batch)
-                    val_loss = criteria[0](val_outputs[0], val_batch[1])
+                    val_loss = criteria[0](val_outputs[0], val_batch["outputs"][0])
                     # for i in range(len(val_outputs)):
 
                     #     val_loss +=
@@ -160,15 +171,30 @@ class EssayToEmotionEmpathyDistressBERT(nn.Module):
                     val_epoch_acc.append(val_acc)
                     val_epoch_f1.append(val_f1)
             progress_bar.close()
+
+
+            
             tqdm.write(
                 f"Val loss: {np.mean(val_epoch_loss)} Val accuracy: {np.mean(val_epoch_acc)} Val f1: {np.mean(val_epoch_f1)}")
+            
+            train_cm = confusion_matrix(batch["outputs"][0], outputs[0])
+            df_cm = pd.DataFrame(train_cm, index = ("anger", "disgust", "fear", "joy", "neutral", "sadness", "surprise"),
+                            columns = ("anger", "disgust", "fear", "joy", "neutral", "sadness", "surprise"))
+            plt.figure(figsize = (10,7))
+            sns.heatmap(df_cm, annot=True)
+            wandb.log({"train_confusion_matrix": plt}, commit=False)
 
+            plt.clf()
+            val_cm = confusion_matrix(val_batch["outputs"][0], val_outputs[0])
+            df_cm = pd.DataFrame(val_cm, index =("anger", "disgust", "fear", "joy", "neutral", "sadness", "surprise"),
+                            columns = ("anger", "disgust", "fear", "joy", "neutral", "sadness", "surprise"))
+            plt.figure(figsize = (10,7))
+            sns.heatmap(df_cm, annot=True)
+            wandb.log({"val_confusion_matrix": plt}, commit=False)
+
+            
             wandb.log({
                 "epoch": epoch,
-                "train_conf_mat": wandb.plot.confusion_matrix(y_true=batch["outputs"][0].detach().cpu().numpy(), probs=outputs[0].detach().cpu().numpy(),
-                                                              class_names=("anger", "disgust", "fear", "joy", "neutral", "sadness", "surprise")),
-                "val_conf_mat": wandb.plot.confusion_matrix(y_true=val_batch["outputs"][0].detach().cpu().numpy(), preds=val_outputs[0].detach().cpu().numpy(),
-                                                            class_names=("anger", "disgust", "fear", "joy", "neutral", "sadness", "surprise")),
                 "train loss": np.mean(epoch_loss),
                 "train accuracy":  np.mean(epoch_acc),
                 "train macro f1":  np.mean(epoch_f1),

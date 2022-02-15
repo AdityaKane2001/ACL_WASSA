@@ -1,2 +1,2 @@
-from essaytoallbert import *
-from essaytoemotionempathydistressbert import *
+from .essaytoallbert import *
+from .essaytoemotionempathydistressbert import *

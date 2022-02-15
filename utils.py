@@ -25,13 +25,23 @@ def accuracy(true, pred):
 
 
 def f1_loss(y_true: torch.Tensor, y_pred: torch.Tensor) -> torch.Tensor:
-    f1 = f1_score(y_true.detach().cpu().numpy(),
-                  np.argmax(y_pred.detach().cpu().numpy(), axis=-1), average='macro')
+    if type(y_true) != np.ndarray:
+        y_true = y_true.detach().cpu().numpy()
+    if type(y_pred) != np.ndarray:
+        y_pred = y_pred.detach().cpu().numpy()
+    
+    f1 = f1_score(y_true,
+                  np.argmax(y_pred, axis=-1), average='macro')
     return f1
 
 def confusion_matrix(y_true, y_pred):
-    return confusion_matrix(y_true.detach().cpu().numpy(),
-                            np.argmax(y_pred.detach().cpu().numpy(), axis=-1))
+    if type(y_true) != np.ndarray:
+        y_true = y_true.detach().cpu().numpy()
+    if type(y_pred) == torch.Tensor:
+        y_pred = y_pred.detach().cpu().numpy()
+    
+    return confusion_matrix(y_true,
+                            np.argmax(y_pred, axis=-1))
 
 
 def get_optimizer(cfg, params):

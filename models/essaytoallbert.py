@@ -7,8 +7,8 @@ from tqdm.auto import tqdm
 import wandb
 
 
-from ..dataloader import get_dataset
-from ..utils import *
+from dataloader import get_dataset
+from utils import *
 
 
 class EssayToAllBERT(nn.Module):

@@ -30,7 +30,7 @@ cfg.dataset_root_dir = "./"
 
 #wandb stuff
 timestr = get_run_timestr()
-run_name = "-".join([cfg.model, timestr])
+run_name = "-".join([cfg.model, cfg.dataset, timestr])
 cfg.description = "BERT base training, only essay to all predictions" ######### modify this
 wandb.init(entity="compyle",
            project="acl_wassa",

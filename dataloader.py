@@ -148,7 +148,7 @@ class WASSADataset(torch.utils.data.Dataset):
 
 def get_dataset(cfg):
     if cfg.dataset == "task1and2":
-        ds =  WASSADataset(os.path.join(cfg.dataset_root_dir, "messages_train_ready_for_WS.tsv"))
+        ds =  WASSADataset(os.path.join(cfg.dataset_root_dir, "messages_train_ready_for_WS.tsv"), cfg)
         train_size = int(len(ds) * 0.8)
 
         val_size = len(ds) - train_size
