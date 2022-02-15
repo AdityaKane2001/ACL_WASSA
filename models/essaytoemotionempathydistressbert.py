@@ -169,7 +169,7 @@ class EssayToEmotionEmpathyDistressBERT(nn.Module):
                     np_val_outputs = val_outputs[0].detach().cpu().numpy()
 
                     val_f1 = f1_loss(np_val_batch_outputs, np_val_outputs)
-                    val_acc = accuracy(val_batch["outputs"][0], val_outputs[0])
+                    val_acc = accuracy(np_val_batch_outputs, np_val_outputs)
 
                     val_epoch_loss.append(val_loss.detach().cpu().numpy())
                     val_epoch_acc.append(val_acc)
