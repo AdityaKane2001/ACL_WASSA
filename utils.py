@@ -6,6 +6,7 @@ from sklearn.metrics import f1_score, confusion_matrix as skcm
 from torch import nn
 from datetime import datetime, timedelta
 
+
 def get_file_to_df(filepath):
     if filepath.endswith(".tsv"):
         return pd.read_csv(filepath, sep="\t")
@@ -25,12 +26,12 @@ def accuracy(true, pred):
 
 
 def f1_loss(y_true: torch.Tensor, y_pred: torch.Tensor) -> torch.Tensor:
-    f1 = f1_score(y_true,
-                  np.argmax(y_pred, axis=-1), average='macro')
+    f1 = f1_score(y_true, np.argmax(y_pred, axis=-1), average='macro')
     return f1
 
+
 def confusion_matrix(y_true, y_pred):
-    
+
     return skcm(y_true, np.argmax(y_pred, axis=-1))
 
 

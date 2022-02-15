@@ -19,7 +19,9 @@ nltk.download('wordnet')
 nltk.download('words')
 nltk.download('brown')
 
+
 class WASSADataset(torch.utils.data.Dataset):
+
     def __init__(self, tsv_path, cfg):
         self.tsv_path = tsv_path
         self.cfg = cfg
@@ -44,15 +46,17 @@ class WASSADataset(torch.utils.data.Dataset):
         self.empathy = self.raw_df["empathy"]
         self.distress = self.raw_df["distress"]
 
-        self.personality_conscientiousness = self.raw_df["personality_conscientiousness"]
+        self.personality_conscientiousness = self.raw_df[
+            "personality_conscientiousness"]
         self.personality_openess = self.raw_df["personality_openess"]
         self.personality_extraversion = self.raw_df["personality_extraversion"]
-        self.personality_agreeableness = self.raw_df["personality_agreeableness"]
+        self.personality_agreeableness = self.raw_df[
+            "personality_agreeableness"]
         self.personality_stability = self.raw_df["personality_stability"]
 
-        self.iri_perspective_taking = self.raw_df["iri_perspective_taking"] 
+        self.iri_perspective_taking = self.raw_df["iri_perspective_taking"]
         self.iri_fantasy = self.raw_df["iri_fantasy"]
-        self.iri_personal_distress  = self.raw_df["iri_personal_distress"]	
+        self.iri_personal_distress = self.raw_df["iri_personal_distress"]
         self.iri_empathatic_concern = self.raw_df["iri_empathatic_concern"]
 
         self.EMOTION_DICT = {
@@ -64,7 +68,7 @@ class WASSADataset(torch.utils.data.Dataset):
             "sadness": 5,
             "surprise": 6
         }
-    
+
     def clean_single_line(self, text):
         # Code credits: https://github.com/mr-atharva-kulkarni/EACL-WASSA-2021-Empathy-Distress/blob/main/utils/preprocess.py#L164
         text = re.sub('\S*@\S*\s?', '', text)
@@ -103,7 +107,7 @@ class WASSADataset(torch.utils.data.Dataset):
                     if word.lemma_ != '-PRON-':
                         lemmatized_text.append(word.lemma_.lower())
                     # else:
-                        # lemmatized_text.append(word.lower())
+                    # lemmatized_text.append(word.lower())
             text = " ".join([word.lower() for word in lemmatized_text])
         return text
 
@@ -113,8 +117,9 @@ class WASSADataset(torch.utils.data.Dataset):
     def __getitem__(self, idx):
         cleaned_text = self.clean_single_line(self.essays[idx])
 
-        return {"inputs":  # (inputs_tuple,outputs_tuple)
-                (   # Inputs tuple
+        return {
+            "inputs":  # (inputs_tuple,outputs_tuple)
+                (  # Inputs tuple
                     cleaned_text,
                     torch.tensor(self.gender[idx]),
                     torch.tensor(self.education[idx]),
@@ -122,33 +127,35 @@ class WASSADataset(torch.utils.data.Dataset):
                     torch.tensor(self.age[idx]),
                     torch.tensor(self.income[idx]),
                 ),
-                "outputs":(   # Outputs tuple
-                    torch.tensor(self.EMOTION_DICT[self.emotion[idx]]),
-                    torch.tensor(self.empathy[idx], dtype=torch.float32),
-                    torch.tensor(self.distress[idx], dtype=torch.float32),
-                    torch.tensor(
-                        self.personality_conscientiousness[idx], dtype=torch.float32),
-                    torch.tensor(
-                        self.personality_openess[idx], dtype=torch.float32),
-                    torch.tensor(
-                        self.personality_extraversion[idx], dtype=torch.float32),
-                    torch.tensor(
-                        self.personality_agreeableness[idx], dtype=torch.float32),
-                    torch.tensor(
-                        self.personality_stability[idx], dtype=torch.float32),
-                    torch.tensor(
-                        self.iri_perspective_taking[idx], dtype=torch.float32),
-                    torch.tensor(self.iri_fantasy[idx], dtype=torch.float32),
-                    torch.tensor(
-                        self.iri_personal_distress[idx], dtype=torch.float32),
-                    torch.tensor(
-                        self.iri_empathatic_concern[idx], dtype=torch.float32)
-                )
-            }
+            "outputs": (  # Outputs tuple
+                torch.tensor(self.EMOTION_DICT[self.emotion[idx]]),
+                torch.tensor(self.empathy[idx], dtype=torch.float32),
+                torch.tensor(self.distress[idx], dtype=torch.float32),
+                torch.tensor(self.personality_conscientiousness[idx],
+                             dtype=torch.float32),
+                torch.tensor(self.personality_openess[idx],
+                             dtype=torch.float32),
+                torch.tensor(self.personality_extraversion[idx],
+                             dtype=torch.float32),
+                torch.tensor(self.personality_agreeableness[idx],
+                             dtype=torch.float32),
+                torch.tensor(self.personality_stability[idx],
+                             dtype=torch.float32),
+                torch.tensor(self.iri_perspective_taking[idx],
+                             dtype=torch.float32),
+                torch.tensor(self.iri_fantasy[idx], dtype=torch.float32),
+                torch.tensor(self.iri_personal_distress[idx],
+                             dtype=torch.float32),
+                torch.tensor(self.iri_empathatic_concern[idx],
+                             dtype=torch.float32))
+        }
+
 
 def get_dataset(cfg):
     if cfg.dataset == "task1and2":
-        ds =  WASSADataset(os.path.join(cfg.dataset_root_dir, "messages_train_ready_for_WS.tsv"), cfg)
+        ds = WASSADataset(
+            os.path.join(cfg.dataset_root_dir,
+                         "messages_train_ready_for_WS.tsv"), cfg)
         train_size = int(len(ds) * 0.8)
 
         val_size = len(ds) - train_size
@@ -156,8 +163,12 @@ def get_dataset(cfg):
         train_ds, val_ds = torch.utils.data.random_split(
             ds, [train_size, val_size])
 
-        train_ds = torch.utils.data.DataLoader(
-            train_ds, batch_size=cfg.batch_size, shuffle=True, drop_last=True)
-        val_ds = torch.utils.data.DataLoader(
-            val_ds, batch_size=val_size, shuffle=False, drop_last=True)
+        train_ds = torch.utils.data.DataLoader(train_ds,
+                                               batch_size=cfg.batch_size,
+                                               shuffle=True,
+                                               drop_last=True)
+        val_ds = torch.utils.data.DataLoader(val_ds,
+                                             batch_size=val_size,
+                                             shuffle=False,
+                                             drop_last=True)
         return train_ds, val_ds

@@ -26,16 +26,15 @@ class EssayToEmotionEmpathyDistressBERT(nn.Module):
     def __init__(self, cfg):
         self.cfg = cfg
         super().__init__()
-        self.tokenizer = BertTokenizer.from_pretrained(
-            "bert-base-uncased", do_lower_case=True)
+        self.tokenizer = BertTokenizer.from_pretrained("bert-base-uncased",
+                                                       do_lower_case=True)
 
-        self.bert = BertModel.from_pretrained(
-            "bert-base-uncased")
-        self.emotion_lin = nn.Linear(
-            self.bert.config.hidden_size, self.cfg.num_classes)
+        self.bert = BertModel.from_pretrained("bert-base-uncased")
+        self.emotion_lin = nn.Linear(self.bert.config.hidden_size,
+                                     self.cfg.num_classes)
         self.emotion_softmax = torch.nn.Softmax(dim=-1)
-        self.class_names = ("anger", "disgust", "fear",
-                            "joy", "neutral", "sadness", "surprise")
+        self.class_names = ("anger", "disgust", "fear", "joy", "neutral",
+                            "sadness", "surprise")
         self.empathy = nn.Linear(self.bert.config.hidden_size, 1)
         self.distress = nn.Linear(self.bert.config.hidden_size, 1)
 
@@ -62,10 +61,7 @@ class EssayToEmotionEmpathyDistressBERT(nn.Module):
 
         empathy = self.empathy(x)
         distress = self.distress(x)
-        return (emotion,
-                empathy,
-                distress
-                )
+        return (emotion, empathy, distress)
 
     def get_criteria(self):
         criteria = []
@@ -79,7 +75,6 @@ class EssayToEmotionEmpathyDistressBERT(nn.Module):
         dbatch = {
             "inputs": [obj.to(self.device) for obj in batch["inputs"]],
             "outputs": [obj.to(self.device) for obj in batch["outputs"]]
-
         }
         return dbatch
 
@@ -152,24 +147,25 @@ class EssayToEmotionEmpathyDistressBERT(nn.Module):
             self.eval()
             with torch.no_grad():
                 for val_batch in val_ds:
-                    val_batch["inputs"][0] = self.tokenizer(text=val_batch["inputs"][0],
-                                                            add_special_tokens=True,
-                                                            return_attention_mask=True,
-                                                            max_length=self.cfg.maxlen,
-                                                            padding='max_length',
-                                                            truncation=True,
-                                                            return_tensors="pt")
+                    val_batch["inputs"][0] = self.tokenizer(
+                        text=val_batch["inputs"][0],
+                        add_special_tokens=True,
+                        return_attention_mask=True,
+                        max_length=self.cfg.maxlen,
+                        padding='max_length',
+                        truncation=True,
+                        return_tensors="pt")
 
                     val_batch = self.push_batch_to_device(val_batch)
 
                     val_outputs = self(val_batch)
-                    val_loss = criteria[0](
-                        val_outputs[0], val_batch["outputs"][0])
+                    val_loss = criteria[0](val_outputs[0],
+                                           val_batch["outputs"][0])
                     # for i in range(len(val_outputs)):
 
                     #     val_loss +=
-                    np_val_batch_outputs = val_batch["outputs"][0].detach(
-                    ).cpu().numpy()
+                    np_val_batch_outputs = val_batch["outputs"][0].detach().cpu(
+                    ).numpy()
                     np_val_outputs = val_outputs[0].detach().cpu().numpy()
 
                     val_f1 = f1_loss(np_val_batch_outputs, np_val_outputs)
@@ -181,24 +177,28 @@ class EssayToEmotionEmpathyDistressBERT(nn.Module):
             progress_bar.close()
 
             tqdm.write(
-                f"Val loss: {np.mean(val_epoch_loss)} Val accuracy: {np.mean(val_epoch_acc)} Val f1: {np.mean(val_epoch_f1)}")
+                f"Val loss: {np.mean(val_epoch_loss)} Val accuracy: {np.mean(val_epoch_acc)} Val f1: {np.mean(val_epoch_f1)}"
+            )
 
             val_cm = confusion_matrix(np_val_batch_outputs, np_val_outputs)
 
-            ax = sns.heatmap(val_cm, annot=True, xticklabels=self.class_names,
-                             yticklabels=self.class_names, fmt="d")
+            ax = sns.heatmap(val_cm,
+                             annot=True,
+                             xticklabels=self.class_names,
+                             yticklabels=self.class_names,
+                             fmt="d")
             ax.get_figure().savefig("confusion.jpg")
-            wandb.log({"val_confusion_matrix": wandb.Image(
-                "confusion.jpg")}, commit=False)
+            wandb.log({"val_confusion_matrix": wandb.Image("confusion.jpg")},
+                      commit=False)
 
             plt.show()
 
             wandb.log({
                 "epoch": epoch,
                 "train loss": np.mean(epoch_loss),
-                "train accuracy":  np.mean(epoch_acc),
-                "train macro f1":  np.mean(epoch_f1),
-                "val loss":  np.mean(val_epoch_loss),
+                "train accuracy": np.mean(epoch_acc),
+                "train macro f1": np.mean(epoch_f1),
+                "val loss": np.mean(val_epoch_loss),
                 "val accuracy": np.mean(val_epoch_acc),
                 "val macro f1": np.mean(val_epoch_f1)
             })

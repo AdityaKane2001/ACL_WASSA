@@ -1,10 +1,10 @@
-
 from utils import get_run_timestr
 from models import *
 import ml_collections as mlc
 import wandb
 
 import warnings
+
 warnings.filterwarnings("ignore")
 
 #----------- Config -----------------------------#
@@ -13,25 +13,24 @@ warnings.filterwarnings("ignore")
 cfg = mlc.ConfigDict()
 
 cfg.model = "EssayToEmotionEmpathyDistressBERT"
-cfg.dataset="task1and2"
-cfg.remove_stopwords=True
-cfg.lemmatize=True
-cfg.maxlen=100
-cfg.num_classes=7
-cfg.batch_size=64
-cfg.epochs=20
+cfg.dataset = "task1and2"
+cfg.remove_stopwords = True
+cfg.lemmatize = True
+cfg.maxlen = 100
+cfg.num_classes = 7
+cfg.batch_size = 64
+cfg.epochs = 20
 cfg.learning_rate = 1e-4
-cfg.mode="train"
-cfg.classification_loss="categorical_crossentropy"
-cfg.regression_loss="mean_squared_error"
-cfg.optimizer="adam"
+cfg.mode = "train"
+cfg.classification_loss = "categorical_crossentropy"
+cfg.regression_loss = "mean_squared_error"
+cfg.optimizer = "adam"
 cfg.dataset_root_dir = "./"
-
 
 #wandb stuff
 timestr = get_run_timestr()
 run_name = "-".join([cfg.model, cfg.dataset, timestr])
-cfg.description = "BERT base training, only essay to all predictions" ######### modify this
+cfg.description = "BERT base training, only essay to all predictions"  ######### modify this
 wandb.init(entity="compyle",
            project="acl_wassa",
            job_type="train",

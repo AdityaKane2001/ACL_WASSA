@@ -6,7 +6,6 @@ import numpy as np
 from tqdm.auto import tqdm
 import wandb
 
-
 from dataloader import get_dataset
 from utils import *
 
@@ -25,13 +24,12 @@ class EssayToAllBERT(nn.Module):
     def __init__(self, cfg):
         self.cfg = cfg
         super().__init__()
-        self.tokenizer = BertTokenizer.from_pretrained(
-            "bert-base-uncased", do_lower_case=True)
+        self.tokenizer = BertTokenizer.from_pretrained("bert-base-uncased",
+                                                       do_lower_case=True)
 
-        self.bert = BertModel.from_pretrained(
-            "bert-base-uncased")
-        self.emotion_lin = nn.Linear(
-            self.bert.config.hidden_size, self.cfg.num_classes)
+        self.bert = BertModel.from_pretrained("bert-base-uncased")
+        self.emotion_lin = nn.Linear(self.bert.config.hidden_size,
+                                     self.cfg.num_classes)
         self.emotion_softmax = torch.nn.Softmax(dim=-1)
 
         self.empathy = nn.Linear(self.bert.config.hidden_size, 1)
@@ -40,18 +38,16 @@ class EssayToAllBERT(nn.Module):
         self.personality_conscientiousness = nn.Linear(
             self.bert.config.hidden_size, 1)
         self.personality_openess = nn.Linear(self.bert.config.hidden_size, 1)
-        self.personality_extraversion = nn.Linear(
-            self.bert.config.hidden_size, 1)
-        self.personality_agreeableness = nn.Linear(
-            self.bert.config.hidden_size, 1)
+        self.personality_extraversion = nn.Linear(self.bert.config.hidden_size,
+                                                  1)
+        self.personality_agreeableness = nn.Linear(self.bert.config.hidden_size,
+                                                   1)
         self.personality_stability = nn.Linear(self.bert.config.hidden_size, 1)
 
-        self.iri_perspective_taking = nn.Linear(
-            self.bert.config.hidden_size, 1)
+        self.iri_perspective_taking = nn.Linear(self.bert.config.hidden_size, 1)
         self.iri_fantasy = nn.Linear(self.bert.config.hidden_size, 1)
         self.iri_personal_distress = nn.Linear(self.bert.config.hidden_size, 1)
-        self.iri_empathatic_concern = nn.Linear(
-            self.bert.config.hidden_size, 1)
+        self.iri_empathatic_concern = nn.Linear(self.bert.config.hidden_size, 1)
 
         self.device = torch.device(
             "cuda") if torch.cuda.is_available() else torch.device("cpu")
@@ -70,8 +66,7 @@ class EssayToAllBERT(nn.Module):
         self.personality_conscientiousne = self.personality_conscientiousness.to(
             device)
         self.personality_openess = self.personality_openess.to(device)
-        self.personality_extraversion = self.personality_extraversion.to(
-            device)
+        self.personality_extraversion = self.personality_extraversion.to(device)
         self.personality_agreeableness = self.personality_agreeableness.to(
             device)
         self.personality_stability = self.personality_stability.to(device)
@@ -100,17 +95,10 @@ class EssayToAllBERT(nn.Module):
         iri_personal_distress = self.iri_personal_distress(x)
         iri_empathatic_concern = self.iri_empathatic_concern(x)
 
-        return (emotion,
-                empathy,
-                distress,
-                personality_conscientiousness,
-                personality_openess,
-                personality_extraversion,
-                personality_agreeableness,
-                personality_stability,
-                iri_perspective_taking,
-                iri_fantasy,
-                iri_personal_distress,
+        return (emotion, empathy, distress, personality_conscientiousness,
+                personality_openess, personality_extraversion,
+                personality_agreeableness, personality_stability,
+                iri_perspective_taking, iri_fantasy, iri_personal_distress,
                 iri_empathatic_concern)
 
     def get_criteria(self):
@@ -190,24 +178,25 @@ class EssayToAllBERT(nn.Module):
             self.eval()
             with torch.no_grad():
                 for val_batch in val_ds:
-                    val_batch["inputs"][0] = self.tokenizer(text=val_batch["inputs"][0],
-                                                            add_special_tokens=True,
-                                                            return_attention_mask=True,
-                                                            max_length=self.cfg.maxlen,
-                                                            padding='max_length',
-                                                            truncation=True,
-                                                            return_tensors="pt")
+                    val_batch["inputs"][0] = self.tokenizer(
+                        text=val_batch["inputs"][0],
+                        add_special_tokens=True,
+                        return_attention_mask=True,
+                        max_length=self.cfg.maxlen,
+                        padding='max_length',
+                        truncation=True,
+                        return_tensors="pt")
 
                     val_batch = self.push_batch_to_device(val_batch)
 
                     val_outputs = self(val_batch)
-                    val_loss = criteria[0](
-                        val_outputs[0], val_batch["outputs"][0])
+                    val_loss = criteria[0](val_outputs[0],
+                                           val_batch["outputs"][0])
                     # for i in range(len(val_outputs)):
 
                     #     val_loss +=
-                    np_val_batch_outputs = val_batch["outputs"][0].detach(
-                    ).cpu().numpy()
+                    np_val_batch_outputs = val_batch["outputs"][0].detach().cpu(
+                    ).numpy()
                     np_val_outputs = val_outputs[0].detach().cpu().numpy()
 
                     val_f1 = f1_loss(np_val_batch_outputs, np_val_outputs)
@@ -219,24 +208,28 @@ class EssayToAllBERT(nn.Module):
             progress_bar.close()
 
             tqdm.write(
-                f"Val loss: {np.mean(val_epoch_loss)} Val accuracy: {np.mean(val_epoch_acc)} Val f1: {np.mean(val_epoch_f1)}")
+                f"Val loss: {np.mean(val_epoch_loss)} Val accuracy: {np.mean(val_epoch_acc)} Val f1: {np.mean(val_epoch_f1)}"
+            )
 
             val_cm = confusion_matrix(np_val_batch_outputs, np_val_outputs)
 
-            ax = sns.heatmap(val_cm, annot=True, xticklabels=self.class_names,
-                             yticklabels=self.class_names, fmt="d")
+            ax = sns.heatmap(val_cm,
+                             annot=True,
+                             xticklabels=self.class_names,
+                             yticklabels=self.class_names,
+                             fmt="d")
             ax.get_figure().savefig("confusion.jpg")
-            wandb.log({"val_confusion_matrix": wandb.Image(
-                "confusion.jpg")}, commit=False)
+            wandb.log({"val_confusion_matrix": wandb.Image("confusion.jpg")},
+                      commit=False)
 
             plt.show()
 
             wandb.log({
                 "epoch": epoch,
                 "train loss": np.mean(epoch_loss),
-                "train accuracy":  np.mean(epoch_acc),
-                "train macro f1":  np.mean(epoch_f1),
-                "val loss":  np.mean(val_epoch_loss),
+                "train accuracy": np.mean(epoch_acc),
+                "train macro f1": np.mean(epoch_f1),
+                "val loss": np.mean(val_epoch_loss),
                 "val accuracy": np.mean(val_epoch_acc),
                 "val macro f1": np.mean(val_epoch_f1)
             })
