@@ -187,13 +187,13 @@ class EssayToEmotionEmpathyDistressBERT(nn.Module):
             # sns.heatmap(df_cm, annot=True)
             # wandb.log({"train_confusion_matrix": plt}, commit=False)
 
-            plt.clf()
+            # plt.clf()
             val_cm = confusion_matrix(np_val_batch_outputs, np_val_outputs)
             df_cm = pd.DataFrame(val_cm, index =("anger", "disgust", "fear", "joy", "neutral", "sadness", "surprise"),
                             columns = ("anger", "disgust", "fear", "joy", "neutral", "sadness", "surprise"))
-            plt.figure(figsize = (10,7))
+            fig = plt.figure(figsize = (7,7))
             sns.heatmap(df_cm, annot=True)
-            wandb.log({"val_confusion_matrix": plt}, commit=False)
+            wandb.log({"val_confusion_matrix": fig}, commit=False)
 
             
             wandb.log({
