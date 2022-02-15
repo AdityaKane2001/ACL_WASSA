@@ -25,7 +25,7 @@ cfg.mode = "train"
 cfg.classification_loss = "categorical_crossentropy"
 cfg.regression_loss = "mean_squared_error"
 cfg.optimizer = "adam"
-cfg.dataset_root_dir = "../input/wassa-input-data"
+cfg.dataset_root_dir = "./"
 
 #wandb stuff
 timestr = get_run_timestr()
