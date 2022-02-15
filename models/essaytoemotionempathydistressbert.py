@@ -53,7 +53,6 @@ class EssayToEmotionEmpathyDistressBERT(nn.Module):
         self.distress = self.distress.to(device)
 
     def forward(self, batch):
-
         x = self.bert(**batch["inputs"][0])[1]  # (batch_size, hidden_size)
 
         emotion = self.emotion_lin(x)
