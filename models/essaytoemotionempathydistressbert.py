@@ -181,7 +181,7 @@ class EssayToEmotionEmpathyDistressBERT(nn.Module):
             )
 
             val_cm = confusion_matrix(np_val_batch_outputs, np_val_outputs)
-
+            
             ax = sns.heatmap(val_cm,
                              annot=True,
                              xticklabels=self.class_names,
@@ -204,3 +204,4 @@ class EssayToEmotionEmpathyDistressBERT(nn.Module):
             })
 
             os.remove("confusion.jpg")
+            del ax
