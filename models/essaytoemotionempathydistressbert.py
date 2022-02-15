@@ -126,7 +126,7 @@ class EssayToEmotionEmpathyDistressBERT(nn.Module):
                 acc = accuracy(np_batch_outputs, np_outputs)
                 f1 = f1_loss(np_batch_outputs, np_outputs)
                 loss_ = loss.detach().cpu().numpy()
-                
+
                 epoch_loss.append(loss_)
                 epoch_acc.append(acc)
                 epoch_f1.append(f1)
@@ -194,7 +194,7 @@ class EssayToEmotionEmpathyDistressBERT(nn.Module):
                             columns = ("anger", "disgust", "fear", "joy", "neutral", "sadness", "surprise"))
             fig = plt.figure(figsize = (7,7))
             sns.heatmap(df_cm, annot=True)
-            wandb.log({"val_confusion_matrix": fig}, commit=False)
+            wandb.log({"val_confusion_matrix": plt}, commit=False)
 
             
             wandb.log({
