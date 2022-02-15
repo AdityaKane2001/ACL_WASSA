@@ -120,9 +120,11 @@ class EssayToEmotionEmpathyDistressBERT(nn.Module):
                 # loss
                 optimizer.step()
                 optimizer.zero_grad()
+                np_batch_outputs = batch["outputs"][0].detach().cpu().numpy()
+                np_outputs = outputs[0].detach().cpu().numpy()
 
-                acc = accuracy(batch["outputs"][0], outputs[0])
-                f1 = f1_loss(batch["outputs"][0], outputs[0])
+                acc = accuracy(np_batch_outputs, np_outputs)
+                f1 = f1_loss(np_batch_outputs, np_outputs)
                 loss_ = loss.detach().cpu().numpy()
                 epoch_loss.append(loss_)
                 epoch_acc.append(acc)
@@ -165,7 +167,7 @@ class EssayToEmotionEmpathyDistressBERT(nn.Module):
                     #     val_loss +=
                     np_val_batch_outputs = val_batch["outputs"][0].detach().cpu().numpy()
                     np_val_outputs = val_outputs[0].detach().cpu().numpy()
-                    
+
                     val_f1 = f1_loss(np_val_batch_outputs, np_val_outputs)
                     val_acc = accuracy(val_batch["outputs"][0], val_outputs[0])
 

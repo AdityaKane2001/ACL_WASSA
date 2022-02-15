@@ -20,7 +20,7 @@ def get_run_timestr():
 
 
 def accuracy(true, pred):
-    acc = (true == pred.argmax(-1)).float().detach().sum()
+    acc = np.sum((true == pred.argmax(-1)).astype(np.float32))
     return float(100 * acc / len(true))
 
 
