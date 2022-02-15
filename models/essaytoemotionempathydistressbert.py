@@ -34,7 +34,8 @@ class EssayToEmotionEmpathyDistressBERT(nn.Module):
         self.emotion_lin = nn.Linear(
             self.bert.config.hidden_size, self.cfg.num_classes)
         self.emotion_softmax = torch.nn.Softmax(dim=-1)
-
+        self.class_names = ("anger", "disgust", "fear",
+                            "joy", "neutral", "sadness", "surprise")
         self.empathy = nn.Linear(self.bert.config.hidden_size, 1)
         self.distress = nn.Linear(self.bert.config.hidden_size, 1)
 
@@ -76,7 +77,7 @@ class EssayToEmotionEmpathyDistressBERT(nn.Module):
 
     def push_batch_to_device(self, batch):
         dbatch = {
-            "inputs" : [obj.to(self.device) for obj in batch["inputs"]],
+            "inputs": [obj.to(self.device) for obj in batch["inputs"]],
             "outputs": [obj.to(self.device) for obj in batch["outputs"]]
 
         }
@@ -116,7 +117,7 @@ class EssayToEmotionEmpathyDistressBERT(nn.Module):
                 #     loss += criteria[i](outputs[i],batch[i+1])
 
                 loss.backward()
-                
+
                 # loss
                 optimizer.step()
                 optimizer.zero_grad()
@@ -162,11 +163,13 @@ class EssayToEmotionEmpathyDistressBERT(nn.Module):
                     val_batch = self.push_batch_to_device(val_batch)
 
                     val_outputs = self(val_batch)
-                    val_loss = criteria[0](val_outputs[0], val_batch["outputs"][0])
+                    val_loss = criteria[0](
+                        val_outputs[0], val_batch["outputs"][0])
                     # for i in range(len(val_outputs)):
 
                     #     val_loss +=
-                    np_val_batch_outputs = val_batch["outputs"][0].detach().cpu().numpy()
+                    np_val_batch_outputs = val_batch["outputs"][0].detach(
+                    ).cpu().numpy()
                     np_val_outputs = val_outputs[0].detach().cpu().numpy()
 
                     val_f1 = f1_loss(np_val_batch_outputs, np_val_outputs)
@@ -176,27 +179,20 @@ class EssayToEmotionEmpathyDistressBERT(nn.Module):
                     val_epoch_acc.append(val_acc)
                     val_epoch_f1.append(val_f1)
             progress_bar.close()
-            
 
             tqdm.write(
                 f"Val loss: {np.mean(val_epoch_loss)} Val accuracy: {np.mean(val_epoch_acc)} Val f1: {np.mean(val_epoch_f1)}")
-            
-            # train_cm = confusion_matrix(batch["outputs"][0], outputs[0])
-            # df_cm = pd.DataFrame(train_cm, index = ("anger", "disgust", "fear", "joy", "neutral", "sadness", "surprise"),
-            #                 columns = ("anger", "disgust", "fear", "joy", "neutral", "sadness", "surprise"))
-            # plt.figure(figsize = (10,7))
-            # sns.heatmap(df_cm, annot=True)
-            # wandb.log({"train_confusion_matrix": plt}, commit=False)
 
-            # plt.clf()
             val_cm = confusion_matrix(np_val_batch_outputs, np_val_outputs)
-            df_cm = pd.DataFrame(val_cm, index =("anger", "disgust", "fear", "joy", "neutral", "sadness", "surprise"),
-                            columns = ("anger", "disgust", "fear", "joy", "neutral", "sadness", "surprise"))
-            fig = plt.figure(figsize = (7,7))
-            sns.heatmap(df_cm, annot=True)
-            wandb.log({"val_confusion_matrix": plt}, commit=False)
 
-            
+            ax = sns.heatmap(val_cm, annot=True, xticklabels=self.class_names,
+                             yticklabels=self.class_names, fmt="d")
+            ax.get_figure().savefig("confusion.jpg")
+            wandb.log({"val_confusion_matrix": wandb.Image(
+                "confusion.jpg")}, commit=False)
+
+            plt.show()
+
             wandb.log({
                 "epoch": epoch,
                 "train loss": np.mean(epoch_loss),
