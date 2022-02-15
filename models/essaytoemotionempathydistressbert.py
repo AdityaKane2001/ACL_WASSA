@@ -187,10 +187,11 @@ class EssayToEmotionEmpathyDistressBERT(nn.Module):
                              xticklabels=self.class_names,
                              yticklabels=self.class_names,
                              fmt="d")
+            
             ax.get_figure().savefig("confusion.jpg")
+            
             wandb.log({"val_confusion_matrix": wandb.Image("confusion.jpg")},
                       commit=False)
-            os.remove("confusion.jpg")
 
             wandb.log({
                 "epoch": epoch,
@@ -201,3 +202,5 @@ class EssayToEmotionEmpathyDistressBERT(nn.Module):
                 "val accuracy": np.mean(val_epoch_acc),
                 "val macro f1": np.mean(val_epoch_f1)
             })
+
+            os.remove("confusion.jpg")
