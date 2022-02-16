@@ -207,12 +207,7 @@ class EssayToEmotionEmpathyDistressBERT(nn.Module):
             val_loss, val_acc, val_f1, val_cm = self.eval_epoch(val_ds, criteria)
             progress_bar.close()
 
-            state = {
-                'epoch': epoch,
-                'state_dict': self.state_dict(),
-                'optimizer': optimizer.state_dict(),
-            }
-            torch.save(state, f"./ckpts/bert_{epoch}.pt")
+            torch.save(self.state_dict(), f"./ckpts/bert_{epoch}.pt")
            
 
             stats_dict = {
