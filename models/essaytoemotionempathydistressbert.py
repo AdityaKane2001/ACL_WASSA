@@ -192,6 +192,9 @@ class EssayToEmotionEmpathyDistressBERT(nn.Module):
 
     ### Main driver function
     def fit(self):
+        best_metrics = {"acc" : 0.,
+        "loss" : 0.,
+        "f1" : 0.}
         optimizer = get_optimizer(self.cfg, self.parameters())
         criteria = self.get_criteria()
 
@@ -205,9 +208,18 @@ class EssayToEmotionEmpathyDistressBERT(nn.Module):
             
             # validation loop
             val_loss, val_acc, val_f1, val_cm = self.eval_epoch(val_ds, criteria)
+
+            val_metrics = {
+                "acc": val_acc,
+                "loss": val_loss,
+                "f1":val_f1.
+            }
+
             progress_bar.close()
 
-            torch.save(self.state_dict(), f"./ckpts/bert_{epoch}.pt")
+            if best_metrics[self.cfg.monitor_metric] < val_metrics[self.cfg.monitor_metric]:
+                best_metrics[self.cfg.monitor_metric] = val_metrics[self.cfg.monitor_metric]
+                torch.save(self.state_dict(), f"./ckpts/bert_{epoch}.pt")
            
 
             stats_dict = {
