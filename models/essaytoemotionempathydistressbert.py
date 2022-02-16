@@ -183,8 +183,8 @@ class EssayToEmotionEmpathyDistressBERT(nn.Module):
         val_epoch_acc = []
         val_epoch_f1 = []
 
-        val_empathy_mse = []
-        val_distress_mse = []
+        val_epoch_empathy_mse = []
+        val_epoch_distress_mse = []
         self.eval()
         with torch.no_grad():
             for val_batch in val_ds:
@@ -206,10 +206,10 @@ class EssayToEmotionEmpathyDistressBERT(nn.Module):
                 val_epoch_loss.append(val_loss.detach().cpu().numpy())
                 val_epoch_acc.append(val_acc)
                 val_epoch_f1.append(val_f1)
-                val_empathy_mse.append(val_empathy_mse)
-                val_distress_mse.append(val_distress_mse)
+                val_epoch_empathy_mse.append(val_empathy_mse)
+                val_epoch_distress_mse.append(val_distress_mse)
 
-        return np.mean(val_epoch_loss), np.mean(val_epoch_acc), np.mean(val_epoch_f1),  np.mean(val_empathy_mse), np.mean(val_distress_mse), val_cm
+        return np.mean(val_epoch_loss), np.mean(val_epoch_acc), np.mean(val_epoch_f1),  np.mean(val_epoch_empathy_mse), np.mean(val_epoch_distress_mse), val_cm
 
     ### Main driver function
     def fit(self):
