@@ -212,7 +212,7 @@ class EssayToEmotionEmpathyDistressBERT(nn.Module):
             val_metrics = {
                 "acc": val_acc,
                 "loss": val_loss,
-                "f1":val_f1.
+                "f1":val_f1
             }
 
             progress_bar.close()
