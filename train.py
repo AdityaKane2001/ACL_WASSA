@@ -28,7 +28,7 @@ cfg.optimizer = "adam"
 cfg.dataset_root_dir = "../input/wassa-input-data/"
 cfg.freeze_pretrained = True
 cfg.save_best_only = True
-cfg.monitor_metric = "f1" # One of [acc, loss, f1]
+cfg.monitor_metric = "f1"  # One of [acc, loss, f1]
 
 #wandb stuff
 timestr = get_run_timestr()

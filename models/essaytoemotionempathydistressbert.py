@@ -28,7 +28,7 @@ class EssayToEmotionEmpathyDistressBERT(nn.Module):
                                                        do_lower_case=True)
 
         self.bert = BertModel.from_pretrained("bert-base-uncased")
-        
+
         if self.cfg.freeze_pretrained:
             for param in self.bert.parameters():
                 param.requires_grad = False
@@ -45,7 +45,7 @@ class EssayToEmotionEmpathyDistressBERT(nn.Module):
             "cuda") if torch.cuda.is_available() else torch.device("cpu")
 
         self.push_all_to_device(self.device)
-    
+
     def forward(self, batch):
         """Mandatory forward method"""
         x = self.bert(**batch["inputs"][0])[1]  # (batch_size, hidden_size)
@@ -68,7 +68,6 @@ class EssayToEmotionEmpathyDistressBERT(nn.Module):
         self.empathy = self.empathy.to(device)
         self.distress = self.distress.to(device)
 
-
     def push_batch_to_device(self, batch):
         """Loads members of a batch to GPU. Note that all members are torch 
         Tensors.
@@ -88,12 +87,12 @@ class EssayToEmotionEmpathyDistressBERT(nn.Module):
                          fmt="d")
         ax.get_figure().savefig("confusion.jpg")
         stat_dict["confusion_matrix"] = wandb.Image("confusion.jpg")
-        stat_dict["raw_confusion_matrix"] = val_cm        
+        stat_dict["raw_confusion_matrix"] = val_cm
         wandb.log(stat_dict)
         plt.clf()
         os.remove("confusion.jpg")
         del ax
-    
+
     def get_criteria(self):
         """Get loss funtions for all outputs. """
         criteria = []
@@ -103,7 +102,7 @@ class EssayToEmotionEmpathyDistressBERT(nn.Module):
             criteria += [nn.MSELoss()] * 2
         return criteria
 
-    ### Metrics 
+    ### Metrics
     def loss_fn(self, batch, outputs, criteria):
         """Loss function. Currently only calculated loss for emotions."""
         loss = 0.
@@ -214,9 +213,7 @@ class EssayToEmotionEmpathyDistressBERT(nn.Module):
 
     ### Main driver function
     def fit(self):
-        best_metrics = {"acc" : 0.,
-        "loss" : 0.,
-        "f1" : 0.}
+        best_metrics = {"acc": 0., "loss": 0., "f1": 0.}
         optimizer = get_optimizer(self.cfg, self.parameters())
         criteria = self.get_criteria()
 
@@ -232,18 +229,15 @@ class EssayToEmotionEmpathyDistressBERT(nn.Module):
             val_loss, val_acc, val_f1, val_empathy_mse, val_distress_mse, val_cm = self.eval_epoch(
                 val_ds, criteria)
 
-            val_metrics = {
-                "acc": val_acc,
-                "loss": val_loss,
-                "f1":val_f1
-            }
+            val_metrics = {"acc": val_acc, "loss": val_loss, "f1": val_f1}
 
             progress_bar.close()
 
-            if best_metrics[self.cfg.monitor_metric] < val_metrics[self.cfg.monitor_metric]:
-                best_metrics[self.cfg.monitor_metric] = val_metrics[self.cfg.monitor_metric]
+            if best_metrics[self.cfg.monitor_metric] < val_metrics[
+                    self.cfg.monitor_metric]:
+                best_metrics[self.cfg.monitor_metric] = val_metrics[
+                    self.cfg.monitor_metric]
                 torch.save(self.state_dict(), f"./ckpts/bert_{epoch}.pt")
-           
 
             stats_dict = {
                 "epoch": epoch,
