@@ -87,7 +87,6 @@ class EssayToEmotionEmpathyDistressBERT(nn.Module):
                          fmt="d")
         ax.get_figure().savefig("confusion.jpg")
         stat_dict["confusion_matrix"] = wandb.Image("confusion.jpg")
-        stat_dict["raw_confusion_matrix"] = val_cm
         wandb.log(stat_dict)
         plt.clf()
         os.remove("confusion.jpg")
@@ -250,7 +249,7 @@ class EssayToEmotionEmpathyDistressBERT(nn.Module):
                 "val accuracy": val_acc,
                 "val macro f1": val_f1,
                 "val empathy mse": val_empathy_mse,
-                "va; distress mse": val_distress_mse,
+                "val distress mse": val_distress_mse,
             }
 
             self.push_to_wandb(stats_dict, val_cm)

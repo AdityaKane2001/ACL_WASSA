@@ -26,7 +26,7 @@ cfg.classification_loss = "categorical_crossentropy"
 cfg.regression_loss = "mean_squared_error"
 cfg.optimizer = "adam"
 cfg.dataset_root_dir = "."
-cfg.freeze_pretrained = True
+cfg.freeze_pretrained = False
 cfg.save_best_only = True
 cfg.monitor_metric = "f1"  # One of [acc, loss, f1]
 
