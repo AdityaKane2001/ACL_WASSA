@@ -28,7 +28,7 @@ class EssayToEmotionEmpathyDistressBERT(nn.Module):
                                                        do_lower_case=True)
 
         self.bert = BertModel.from_pretrained("bert-base-uncased")
-        
+
         if self.cfg.freeze_pretrained:
             for param in self.bert.parameters():
                 param.requires_grad = False
@@ -45,7 +45,7 @@ class EssayToEmotionEmpathyDistressBERT(nn.Module):
             "cuda") if torch.cuda.is_available() else torch.device("cpu")
 
         self.push_all_to_device(self.device)
-    
+
     def forward(self, batch):
         """Mandatory forward method"""
         x = self.bert(**batch["inputs"][0])[1]  # (batch_size, hidden_size)
@@ -68,7 +68,6 @@ class EssayToEmotionEmpathyDistressBERT(nn.Module):
         self.empathy = self.empathy.to(device)
         self.distress = self.distress.to(device)
 
-
     def push_batch_to_device(self, batch):
         """Loads members of a batch to GPU. Note that all members are torch 
         Tensors.
@@ -88,12 +87,12 @@ class EssayToEmotionEmpathyDistressBERT(nn.Module):
                          fmt="d")
         ax.get_figure().savefig("confusion.jpg")
         stat_dict["confusion_matrix"] = wandb.Image("confusion.jpg")
-        stat_dict["raw_confusion_matrix"] = val_cm        
+        stat_dict["raw_confusion_matrix"] = val_cm
         wandb.log(stat_dict)
         plt.clf()
         os.remove("confusion.jpg")
         del ax
-    
+
     def get_criteria(self):
         """Get loss funtions for all outputs. """
         criteria = []
@@ -103,7 +102,7 @@ class EssayToEmotionEmpathyDistressBERT(nn.Module):
             criteria += [nn.MSELoss()] * 2
         return criteria
 
-    ### Metrics 
+    ### Metrics
     def loss_fn(self, batch, outputs, criteria):
         """Loss function. Currently only calculated loss for emotions."""
         loss = criteria[0](outputs[0], batch["outputs"][0])
@@ -159,7 +158,7 @@ class EssayToEmotionEmpathyDistressBERT(nn.Module):
             progress_bar.set_postfix(loss=np.mean(epoch_loss),
                                      accuracy=np.mean(epoch_acc),
                                      f1=np.mean(epoch_f1))
-        
+
         return np.mean(epoch_loss), np.mean(epoch_acc), np.mean(epoch_f1)
 
     def eval_epoch(self, val_ds, criteria):
@@ -182,19 +181,18 @@ class EssayToEmotionEmpathyDistressBERT(nn.Module):
                 val_batch = self.push_batch_to_device(val_batch)
 
                 val_outputs = self(val_batch)
-                val_loss = criteria[0](val_outputs[0],
-                                       val_batch["outputs"][0])
-                val_acc, val_f1, val_cm = self.calculate_metrics(val_batch, val_outputs)
+                val_loss = criteria[0](val_outputs[0], val_batch["outputs"][0])
+                val_acc, val_f1, val_cm = self.calculate_metrics(
+                    val_batch, val_outputs)
                 val_epoch_loss.append(val_loss.detach().cpu().numpy())
                 val_epoch_acc.append(val_acc)
                 val_epoch_f1.append(val_f1)
-        return np.mean(val_epoch_loss), np.mean(val_epoch_acc), np.mean(val_epoch_f1), val_cm
+        return np.mean(val_epoch_loss), np.mean(val_epoch_acc), np.mean(
+            val_epoch_f1), val_cm
 
     ### Main driver function
     def fit(self):
-        best_metrics = {"acc" : 0.,
-        "loss" : 0.,
-        "f1" : 0.}
+        best_metrics = {"acc": 0., "loss": 0., "f1": 0.}
         optimizer = get_optimizer(self.cfg, self.parameters())
         criteria = self.get_criteria()
 
@@ -202,25 +200,23 @@ class EssayToEmotionEmpathyDistressBERT(nn.Module):
 
         for epoch in range(self.cfg.epochs):
             progress_bar = tqdm(range(len(train_ds)))
-            
-            epoch_loss, epoch_acc, epoch_f1 = self.train_epoch(train_ds, 
-                optimizer, criteria, progress_bar)
-            
-            # validation loop
-            val_loss, val_acc, val_f1, val_cm = self.eval_epoch(val_ds, criteria)
 
-            val_metrics = {
-                "acc": val_acc,
-                "loss": val_loss,
-                "f1":val_f1
-            }
+            epoch_loss, epoch_acc, epoch_f1 = self.train_epoch(
+                train_ds, optimizer, criteria, progress_bar)
+
+            # validation loop
+            val_loss, val_acc, val_f1, val_cm = self.eval_epoch(
+                val_ds, criteria)
+
+            val_metrics = {"acc": val_acc, "loss": val_loss, "f1": val_f1}
 
             progress_bar.close()
 
-            if best_metrics[self.cfg.monitor_metric] < val_metrics[self.cfg.monitor_metric]:
-                best_metrics[self.cfg.monitor_metric] = val_metrics[self.cfg.monitor_metric]
+            if best_metrics[self.cfg.monitor_metric] < val_metrics[
+                    self.cfg.monitor_metric]:
+                best_metrics[self.cfg.monitor_metric] = val_metrics[
+                    self.cfg.monitor_metric]
                 torch.save(self.state_dict(), f"./ckpts/bert_{epoch}.pt")
-           
 
             stats_dict = {
                 "epoch": epoch,
