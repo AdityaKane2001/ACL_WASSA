@@ -9,12 +9,12 @@ import wandb
 import os
 import seaborn as sns
 import matplotlib.pyplot as plt
-from sklearn.metrics import mean_squared_error as mse
+
 from dataloader import get_dataset
 from utils import *
 
 
-class EssayToEmotionEmpathyDistressBERT(nn.Module):
+class EssayToEmotionBERT(nn.Module):
     """
     Comprises of a bert based self which takes tokenized essay and outputs:
     emotion, empathy and distress. 
@@ -28,7 +28,7 @@ class EssayToEmotionEmpathyDistressBERT(nn.Module):
                                                        do_lower_case=True)
 
         self.bert = BertModel.from_pretrained("bert-base-uncased")
-        
+
         if self.cfg.freeze_pretrained:
             for param in self.bert.parameters():
                 param.requires_grad = False
@@ -38,14 +38,12 @@ class EssayToEmotionEmpathyDistressBERT(nn.Module):
         self.emotion_softmax = torch.nn.Softmax(dim=-1)
         self.class_names = ("anger", "disgust", "fear", "joy", "neutral",
                             "sadness", "surprise")
-        self.empathy = nn.Linear(self.bert.config.hidden_size, 1)
-        self.distress = nn.Linear(self.bert.config.hidden_size, 1)
 
         self.device = torch.device(
             "cuda") if torch.cuda.is_available() else torch.device("cpu")
 
         self.push_all_to_device(self.device)
-    
+
     def forward(self, batch):
         """Mandatory forward method"""
         x = self.bert(**batch["inputs"][0])[1]  # (batch_size, hidden_size)
@@ -53,9 +51,7 @@ class EssayToEmotionEmpathyDistressBERT(nn.Module):
         emotion = self.emotion_lin(x)
         emotion = self.emotion_softmax(emotion)
 
-        empathy = self.empathy(x)
-        distress = self.distress(x)
-        return (emotion, empathy, distress)
+        return (emotion)
 
     ### Utilities
     def push_all_to_device(self, device):
@@ -64,9 +60,6 @@ class EssayToEmotionEmpathyDistressBERT(nn.Module):
 
         self.emotion_lin = self.emotion_lin.to(device)
         self.emotion_softmax = self.emotion_softmax.to(device)
-
-        self.empathy = self.empathy.to(device)
-        self.distress = self.distress.to(device)
 
 
     def push_batch_to_device(self, batch):
@@ -88,12 +81,12 @@ class EssayToEmotionEmpathyDistressBERT(nn.Module):
                          fmt="d")
         ax.get_figure().savefig("confusion.jpg")
         stat_dict["confusion_matrix"] = wandb.Image("confusion.jpg")
-        stat_dict["raw_confusion_matrix"] = val_cm        
+        stat_dict["raw_confusion_matrix"] = val_cm
         wandb.log(stat_dict)
         plt.clf()
         os.remove("confusion.jpg")
         del ax
-    
+
     def get_criteria(self):
         """Get loss funtions for all outputs. """
         criteria = []
@@ -103,31 +96,21 @@ class EssayToEmotionEmpathyDistressBERT(nn.Module):
             criteria += [nn.MSELoss()] * 2
         return criteria
 
-    ### Metrics 
+    ### Metrics
     def loss_fn(self, batch, outputs, criteria):
         """Loss function. Currently only calculated loss for emotions."""
-        loss = 0.
-        for i in range(len(outputs)):
-            loss += criteria[i](outputs[i], batch["outputs"][i])
+        loss = criteria[0](outputs[0], batch["outputs"][0])
         return loss
-    
-    def tocpu(self, obj):
-        return obj.detach().cpu().numpy()
 
     def calculate_metrics(self, batch, outputs):
         """Detaches and loads relavent tensors to CPU and calculated metrics."""
-        np_batch_outputs =self.tocpu(batch["outputs"][0])
-        np_outputs = self.tocpu(outputs[0])
-
-        empathy_mse = mse(self.tocpu(outputs[1]),
-            self.tocpu(batch["outputs"][1]))
-        distress_mse = mse(
-            self.tocpu(outputs[2]), self.tocpu(batch["outputs"][2]))
+        np_batch_outputs = batch["outputs"][0].detach().cpu().numpy()
+        np_outputs = outputs[0].detach().cpu().numpy()
 
         acc = accuracy(np_batch_outputs, np_outputs)
         f1 = f1_loss(np_batch_outputs, np_outputs)
         cm = confusion_matrix(np_batch_outputs, np_outputs)
-        return acc, f1, empathy_mse, distress_mse, cm
+        return acc, f1, cm
 
     ### Train and eval loops
     def train_epoch(self, train_ds, optimizer, criteria, progress_bar):
@@ -136,9 +119,6 @@ class EssayToEmotionEmpathyDistressBERT(nn.Module):
         epoch_loss = []
         epoch_acc = []
         epoch_f1 = []
-        epoch_empathy_mse = []
-        epoch_distress_mse = []
-
         for batchnum, batch in enumerate(train_ds):
             batch["inputs"][0] = self.tokenizer(text=batch["inputs"][0],
                                                 add_special_tokens=True,
@@ -158,16 +138,13 @@ class EssayToEmotionEmpathyDistressBERT(nn.Module):
             optimizer.step()
             optimizer.zero_grad()
 
-            acc, f1,  empathy_mse, distress_mse, _ = self.calculate_metrics(
-                batch, outputs)
+            acc, f1, _ = self.calculate_metrics(batch, outputs)
             loss_ = loss.detach().cpu().numpy()
 
             # record metrics
             epoch_loss.append(loss_)
             epoch_acc.append(acc)
             epoch_f1.append(f1)
-            epoch_empathy_mse.append(empathy_mse)
-            epoch_distress_mse.append(distress_mse)
 
             # progress bar
             progress_bar.set_postfix(loss=loss_, accuracy=acc, f1=f1)
@@ -175,17 +152,14 @@ class EssayToEmotionEmpathyDistressBERT(nn.Module):
             progress_bar.set_postfix(loss=np.mean(epoch_loss),
                                      accuracy=np.mean(epoch_acc),
                                      f1=np.mean(epoch_f1))
-        
-        return np.mean(epoch_loss), np.mean(epoch_acc), np.mean(epoch_f1), np.mean(epoch_empathy_mse), np.mean(epoch_distress_mse)
+
+        return np.mean(epoch_loss), np.mean(epoch_acc), np.mean(epoch_f1)
 
     def eval_epoch(self, val_ds, criteria):
         """Validation loop. val DS has exactly one batch."""
         val_epoch_loss = []
         val_epoch_acc = []
         val_epoch_f1 = []
-
-        val_empathy_mse = []
-        val_distress_mse = []
         self.eval()
         with torch.no_grad():
             for val_batch in val_ds:
@@ -201,22 +175,20 @@ class EssayToEmotionEmpathyDistressBERT(nn.Module):
                 val_batch = self.push_batch_to_device(val_batch)
 
                 val_outputs = self(val_batch)
-                val_loss = self.loss_fn(val_batch, val_outputs, criteria)
-
-                val_acc, val_f1, val_empathy_mse, val_distress_mse, val_cm = self.calculate_metrics(val_batch, val_outputs)
+                val_loss = criteria[0](val_outputs[0],
+                                       val_batch["outputs"][0])
+                val_acc, val_f1, val_cm = self.calculate_metrics(
+                    val_batch, val_outputs)
                 val_epoch_loss.append(val_loss.detach().cpu().numpy())
                 val_epoch_acc.append(val_acc)
                 val_epoch_f1.append(val_f1)
-                val_empathy_mse.append(val_empathy_mse)
-                val_distress_mse.append(val_distress_mse)
-
-        return np.mean(val_epoch_loss), np.mean(val_epoch_acc), np.mean(val_epoch_f1),  np.mean(val_empathy_mse), np.mean(val_distress_mse), val_cm
+        return np.mean(val_epoch_loss), np.mean(val_epoch_acc), np.mean(val_epoch_f1), val_cm
 
     ### Main driver function
     def fit(self):
-        best_metrics = {"acc" : 0.,
-        "loss" : 0.,
-        "f1" : 0.}
+        best_metrics = {"acc": 0.,
+                        "loss": 0.,
+                        "f1": 0.}
         optimizer = get_optimizer(self.cfg, self.parameters())
         criteria = self.get_criteria()
 
@@ -224,18 +196,18 @@ class EssayToEmotionEmpathyDistressBERT(nn.Module):
 
         for epoch in range(self.cfg.epochs):
             progress_bar = tqdm(range(len(train_ds)))
-            
-            epoch_loss, epoch_acc, epoch_f1, epoch_empathy_mse, epoch_distress_mse = self.train_epoch(train_ds,
-                optimizer, criteria, progress_bar)
-            
+
+            epoch_loss, epoch_acc, epoch_f1 = self.train_epoch(train_ds,
+                                                               optimizer, criteria, progress_bar)
+
             # validation loop
-            val_loss, val_acc, val_f1, val_empathy_mse, val_distress_mse, val_cm = self.eval_epoch(
+            val_loss, val_acc, val_f1, val_cm = self.eval_epoch(
                 val_ds, criteria)
 
             val_metrics = {
                 "acc": val_acc,
                 "loss": val_loss,
-                "f1":val_f1
+                "f1": val_f1
             }
 
             progress_bar.close()
@@ -243,20 +215,15 @@ class EssayToEmotionEmpathyDistressBERT(nn.Module):
             if best_metrics[self.cfg.monitor_metric] < val_metrics[self.cfg.monitor_metric]:
                 best_metrics[self.cfg.monitor_metric] = val_metrics[self.cfg.monitor_metric]
                 torch.save(self.state_dict(), f"./ckpts/bert_{epoch}.pt")
-           
 
             stats_dict = {
                 "epoch": epoch,
                 "train loss": epoch_loss,
                 "train accuracy": epoch_acc,
                 "train macro f1": epoch_f1,
-                "train empathy mse": epoch_empathy_mse,
-                "train distress mse": epoch_distress_mse,
                 "val loss": val_loss,
                 "val accuracy": val_acc,
                 "val macro f1": val_f1,
-                "val empathy mse": val_empathy_mse,
-                "va; distress mse": val_distress_mse,
             }
 
             self.push_to_wandb(stats_dict, val_cm)
