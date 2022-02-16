@@ -7,7 +7,6 @@ from tqdm.auto import tqdm
 import wandb
 
 import os
-import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
 
@@ -29,6 +28,11 @@ class EssayToEmotionEmpathyDistressBERT(nn.Module):
                                                        do_lower_case=True)
 
         self.bert = BertModel.from_pretrained("bert-base-uncased")
+        
+        if self.cfg.freeze_pretrained:
+            for param in self.bert.parameters():
+                param.requires_grad = False
+
         self.emotion_lin = nn.Linear(self.bert.config.hidden_size,
                                      self.cfg.num_classes)
         self.emotion_softmax = torch.nn.Softmax(dim=-1)
@@ -84,11 +88,8 @@ class EssayToEmotionEmpathyDistressBERT(nn.Module):
                          fmt="d")
         ax.get_figure().savefig("confusion.jpg")
         stat_dict["confusion_matrix"] = wandb.Image("confusion.jpg")
-        stat_dict["raw_confusion_matrix"] = val_cm
-        
-        
+        stat_dict["raw_confusion_matrix"] = val_cm        
         wandb.log(stat_dict)
-
         plt.clf()
         os.remove("confusion.jpg")
         del ax
@@ -115,7 +116,8 @@ class EssayToEmotionEmpathyDistressBERT(nn.Module):
 
         acc = accuracy(np_batch_outputs, np_outputs)
         f1 = f1_loss(np_batch_outputs, np_outputs)
-        return acc, f1
+        cm = confusion_matrix(np_batch_outputs, np_outputs)
+        return acc, f1, cm
 
     ### Train and eval loops
     def train_epoch(self, train_ds, optimizer, criteria, progress_bar):
@@ -143,7 +145,7 @@ class EssayToEmotionEmpathyDistressBERT(nn.Module):
             optimizer.step()
             optimizer.zero_grad()
 
-            acc, f1 = self.calculate_metrics(batch, outputs)
+            acc, f1, _ = self.calculate_metrics(batch, outputs)
             loss_ = loss.detach().cpu().numpy()
 
             # record metrics
@@ -182,22 +184,11 @@ class EssayToEmotionEmpathyDistressBERT(nn.Module):
                 val_outputs = self(val_batch)
                 val_loss = criteria[0](val_outputs[0],
                                        val_batch["outputs"][0])
-                # for i in range(len(val_outputs)):
-
-                #     val_loss +=
-                np_val_batch_outputs = val_batch["outputs"][0].detach().cpu(
-                ).numpy()
-                np_val_outputs = val_outputs[0].detach().cpu().numpy()
-
-                val_f1 = f1_loss(np_val_batch_outputs, np_val_outputs)
-                val_acc = accuracy(np_val_batch_outputs, np_val_outputs)
-
+                val_acc, val_f1, val_cm = self.calculate_metrics(val_batch, val_outputs)
                 val_epoch_loss.append(val_loss.detach().cpu().numpy())
                 val_epoch_acc.append(val_acc)
                 val_epoch_f1.append(val_f1)
-        val_cm = confusion_matrix(np_val_batch_outputs, np_val_outputs)
-
-        return np.mean(val_epoch_loss), np.mean(val_epoch_loss), np.mean(val_epoch_f1), val_cm
+        return np.mean(val_epoch_loss), np.mean(val_epoch_acc), np.mean(val_epoch_f1), val_cm
 
     ### Main driver function
     def fit(self):
@@ -213,7 +204,7 @@ class EssayToEmotionEmpathyDistressBERT(nn.Module):
                 optimizer, criteria, progress_bar)
             
             # validation loop
-            val_loss, val_acc, val_acc, val_f1, val_cm = self.eval_epoch(val_ds, criteria)
+            val_loss, val_acc, val_f1, val_cm = self.eval_epoch(val_ds, criteria)
             progress_bar.close()
 
             state = {

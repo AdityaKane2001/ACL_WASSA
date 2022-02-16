@@ -14,8 +14,8 @@ cfg = mlc.ConfigDict()
 
 cfg.model = "EssayToEmotionEmpathyDistressBERT"
 cfg.dataset = "task1and2"
-cfg.remove_stopwords = True
-cfg.lemmatize = True
+cfg.remove_stopwords = False
+cfg.lemmatize = False
 cfg.maxlen = 100
 cfg.num_classes = 7
 cfg.batch_size = 64
@@ -25,7 +25,8 @@ cfg.mode = "train"
 cfg.classification_loss = "categorical_crossentropy"
 cfg.regression_loss = "mean_squared_error"
 cfg.optimizer = "adam"
-cfg.dataset_root_dir = "../input/wassa-input-data"
+cfg.dataset_root_dir = "../input/wassa-input-data/"
+cfg.freeze_pretrained = False
 
 #wandb stuff
 timestr = get_run_timestr()
@@ -41,4 +42,5 @@ if cfg.model == "EssayToAllBERT":
     model = EssayToAllBERT(cfg)
 elif cfg.model == "EssayToEmotionEmpathyDistressBERT":
     model = EssayToEmotionEmpathyDistressBERT(cfg)
+
 model.fit()
