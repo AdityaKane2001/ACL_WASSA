@@ -133,10 +133,11 @@ class EssayToEmotionBERT(nn.Module):
             outputs = self(batch)
 
             loss = self.loss_fn(batch, outputs, criteria)
+            optimizer.zero_grad()
             loss.backward()
 
             optimizer.step()
-            optimizer.zero_grad()
+            
 
             acc, f1, _ = self.calculate_metrics(batch, outputs)
             loss_ = loss.detach().cpu().numpy()
