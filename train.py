@@ -25,16 +25,17 @@ cfg.mode = "train"
 cfg.classification_loss = "categorical_crossentropy"
 cfg.regression_loss = "mean_squared_error"
 cfg.optimizer = "adam"
-cfg.dataset_root_dir = "."
+cfg.dataset_root_dir = "/gdrive/MyDrive/WASSA/input_data/"
 cfg.freeze_pretrained = False
 cfg.save_best_only = True
 cfg.monitor_metric = "f1"  # One of [acc, loss, f1]
+cfg.balanced = True # sampler for balancing class-imbalance
 
 #wandb stuff
 timestr = get_run_timestr()
 run_name = "-".join([cfg.model, cfg.dataset, timestr])
 cfg.description = "BERT base training, only essay to all predictions"  ######### modify this
-wandb.init(entity="compyle",
+wandb.init(entity="acl_wassa_pictxmanipal",
            project="acl_wassa",
            job_type="train",
            name=run_name,

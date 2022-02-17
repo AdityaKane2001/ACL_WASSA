@@ -153,6 +153,15 @@ class WASSADataset(torch.utils.data.Dataset):
 
 def get_dataset(cfg):
     if cfg.dataset == "task1and2":
+      ### TODO
+      """
+      1. pass raw_df instead of path to the dataset
+      2. split the raw_df in train_df and valid_df
+      3. fetch labels from the train_df
+      4. do the imbalance stuff
+      5. pass train_df and valid_df to generate 2 datasets, these will be passed
+      into 2 dataloaders
+      """
         ds = WASSADataset(
             os.path.join(cfg.dataset_root_dir,
                          "messages_train_ready_for_WS.tsv"), cfg)
@@ -162,9 +171,25 @@ def get_dataset(cfg):
 
         train_ds, val_ds = torch.utils.data.random_split(
             ds, [train_size, val_size])
-
+        
+        sampler_train = None
+        
+        # if cfg.balanced:
+        #   print("__"*80)
+        #   print(type(train_ds), train_ds)
+        #   y_train = np.array(train_ds['outputs'][0])
+        #   print(type(y_train[0]))
+        #   unique_labels, counts = np.unique(y_train, return_counts=True)
+        #   class_weights = [1/c for c in counts]
+        #   sample_weights = [0] * len(y_train)
+        #   for idx, lbl in enumerate(y_train):
+        #     sample_weights[idx] = class_weights[lbl]
+        #   sampler_train = torch.utils.data.WeightedRandomSampler(weights=sample_weights, num_samples=len(sample_weights), replacement=True)
+          
+        
         train_ds = torch.utils.data.DataLoader(train_ds,
                                                batch_size=cfg.batch_size,
+                                               sampler=sampler_train,
                                                shuffle=True,
                                                drop_last=True)
         val_ds = torch.utils.data.DataLoader(val_ds,
