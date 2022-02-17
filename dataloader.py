@@ -22,12 +22,11 @@ nltk.download('brown')
 
 class WASSADataset(torch.utils.data.Dataset):
 
-    def __init__(self, tsv_path, cfg):
-        self.tsv_path = tsv_path
+    def __init__(self, raw_df, cfg):
+        
         self.cfg = cfg
 
-        self.raw_df = get_file_to_df(tsv_path)
-
+        self.raw_df = raw_df
         self.stop_words = stopwords.words('english')
         self.nlp = spacy.load('en_core_web_sm')
 
@@ -153,22 +152,53 @@ class WASSADataset(torch.utils.data.Dataset):
 
 def get_dataset(cfg):
     if cfg.dataset == "task1and2":
-        ds = WASSADataset(
-            os.path.join(cfg.dataset_root_dir,
-                         "messages_train_ready_for_WS.tsv"), cfg)
-        train_size = int(len(ds) * 0.8)
+        ### TODO
+        """
+        1. pass raw_df instead of path to the dataset DONE
+        2. split the raw_df in train_df and valid_df DONE
+        3. fetch labels from the train_df 
+        4. do the imbalance stuff
+        5. pass train_df and valid_df to generate 2 datasets, these will be passed DONE
+        into 2 dataloaders
+        """
+        raw_df = get_file_to_df(os.path.join(
+            cfg.dataset_root_dir, "messages_train_ready_for_WS.tsv"))
+        from sklearn.model_selection import train_test_split
+        train_df, valid_df = train_test_split(raw_df, train_size=0.8)
+        train_df = train_df.reset_index()
+        valid_df = valid_df.reset_index()
+        
+        emotion = train_df["emotion"]
+        EMOTION_DICT = {
+            "anger": 0,
+            "disgust": 1,
+            "fear": 2,
+            "joy": 3,
+            "neutral": 4,
+            "sadness": 5,
+            "surprise": 6
+        }
+        y_train = np.array([EMOTION_DICT[item] for item in emotion])
 
-        val_size = len(ds) - train_size
+        train_ds = WASSADataset(train_df, cfg)
+        val_ds = WASSADataset(valid_df, cfg)
+        sampler_train = None
 
-        train_ds, val_ds = torch.utils.data.random_split(
-            ds, [train_size, val_size])
+        if cfg.balanced:
+          unique_labels, counts = np.unique(y_train, return_counts=True)
+          class_weights = [1/c for c in counts]
+          sample_weights = [0] * len(y_train)
+          for idx, lbl in enumerate(y_train):
+            sample_weights[idx] = class_weights[lbl]
+          sampler_train = torch.utils.data.WeightedRandomSampler(
+              weights=sample_weights, num_samples=len(sample_weights), replacement=True)
 
         train_ds = torch.utils.data.DataLoader(train_ds,
                                                batch_size=cfg.batch_size,
-                                               shuffle=True,
+                                               sampler=sampler_train,
                                                drop_last=True)
         val_ds = torch.utils.data.DataLoader(val_ds,
-                                             batch_size=val_size,
+                                             batch_size=10000,
                                              shuffle=False,
-                                             drop_last=True)
+                                             )
         return train_ds, val_ds
