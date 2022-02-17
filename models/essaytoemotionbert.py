@@ -51,7 +51,7 @@ class EssayToEmotionBERT(nn.Module):
         emotion = self.emotion_lin(x)
         emotion = self.emotion_softmax(emotion)
 
-        return (emotion)
+        return (emotion, None)
 
     ### Utilities
     def push_all_to_device(self, device):
