@@ -12,7 +12,7 @@ warnings.filterwarnings("ignore")
 # Check before every run
 cfg = mlc.ConfigDict()
 
-cfg.model = "EssayToEmotionBERT"
+cfg.model = "EssayToEmotionElectra"
 cfg.dataset = "task1and2"
 cfg.remove_stopwords = False
 cfg.lemmatize = False
@@ -48,6 +48,7 @@ elif cfg.model == "EssayToEmotionEmpathyDistressBERT":
     model = EssayToEmotionEmpathyDistressBERT(cfg)
 elif cfg.model == "EssayToEmotionBERT":
     model = EssayToEmotionBERT(cfg)
-
+elif cfg.model == "EssayToEmotionElectra":
+    model = EssayToEmotionElectra(cfg)
 
 model.fit()

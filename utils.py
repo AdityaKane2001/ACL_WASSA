@@ -2,7 +2,7 @@ import pandas as pd
 import torch
 import numpy as np
 
-from sklearn.metrics import f1_score, confusion_matrix as skcm
+from sklearn.metrics import f1_score,classification_report, confusion_matrix as skcm
 from torch import nn
 from datetime import datetime, timedelta
 
@@ -38,3 +38,9 @@ def confusion_matrix(y_true, y_pred):
 def get_optimizer(cfg, params):
     if cfg.optimizer == "adam":
         return torch.optim.Adam(params, lr=0.0001)
+
+def get_classification_report(y_true, y_pred):
+    result_dict = classification_report(
+        y_true, y_pred, output_dict=True)
+    report = pd.DataFrame(result_dict).transpose()
+    return report
