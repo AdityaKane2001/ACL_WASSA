@@ -92,6 +92,10 @@ class EssayToEmotionElectra(nn.Module):
         criteria = []
         if self.cfg.classification_loss == "categorical_crossentropy":
             criteria += [nn.CrossEntropyLoss()]
+        elif self.cfg.classification_loss == "soft_f1":
+            f1 = F1Score(average="macro")
+            criteria += [f1]
+
         if self.cfg.regression_loss == "mean_squared_error":
             criteria += [nn.MSELoss()] * 2
         return criteria
