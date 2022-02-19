@@ -46,8 +46,7 @@ class EssayToEmotionElectra(nn.Module):
 
     def forward(self, batch):
         """Mandatory forward method"""
-        print(batch)
-        x = self.electra(**batch["inputs"][0])[1]  # (batch_size, hidden_size)
+        x = self.electra(**batch["inputs"][0])[0][:, 0, :]  # (batch_size, hidden_size)
 
         emotion = self.emotion_lin(x)
         emotion = self.emotion_softmax(emotion)
@@ -180,12 +179,12 @@ class EssayToEmotionElectra(nn.Module):
                 val_outputs = self(val_batch)
                 val_loss = criteria[0](val_outputs[0],
                                        val_batch["outputs"][0])
-                val_acc, val_f1, val_cm = self.calculate_metrics(
+                val_acc, val_f1, val_cm, val_report = self.calculate_metrics(
                     val_batch, val_outputs)
                 val_epoch_loss.append(val_loss.detach().cpu().numpy())
                 val_epoch_acc.append(val_acc)
                 val_epoch_f1.append(val_f1)
-        return np.mean(val_epoch_loss), np.mean(val_epoch_acc), np.mean(val_epoch_f1), val_cm
+        return np.mean(val_epoch_loss), np.mean(val_epoch_acc), np.mean(val_epoch_f1), val_cm, val_report
 
     ### Main driver function
     def fit(self):
@@ -200,10 +199,11 @@ class EssayToEmotionElectra(nn.Module):
         for epoch in range(self.cfg.epochs):
             progress_bar = tqdm(range(len(train_ds)))
 
+            # training call
             epoch_loss, epoch_acc, epoch_f1 = self.train_epoch(train_ds,
                                                                optimizer, criteria, progress_bar)
 
-            # validation loop
+            # validation call
             val_loss, val_acc, val_f1, val_cm, val_class_report = self.eval_epoch(
                 val_ds, criteria)
 

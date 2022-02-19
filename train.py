@@ -31,6 +31,7 @@ cfg.save_best_only = True
 cfg.monitor_metric = "f1"  # One of [acc, loss, f1]
 cfg.balanced = True
 
+
 #wandb stuff
 timestr = get_run_timestr()
 run_name = "-".join([cfg.model, cfg.dataset, timestr])
