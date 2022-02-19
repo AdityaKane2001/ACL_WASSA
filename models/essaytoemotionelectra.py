@@ -80,7 +80,7 @@ class EssayToEmotionElectra(nn.Module):
                          fmt="d")
         ax.get_figure().savefig("confusion.jpg")
         stat_dict["confusion_matrix"] = wandb.Image("confusion.jpg")
-        stat_dict["raw_confusion_matrix"] = val_cm
+
         wandb.log(stat_dict)
         plt.clf()
         os.remove("confusion.jpg")

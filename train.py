@@ -12,7 +12,7 @@ warnings.filterwarnings("ignore")
 # Check before every run
 cfg = mlc.ConfigDict()
 
-cfg.model = "EssayToEmotionFrozenBERT"
+cfg.model = "EssayToEmotionDistilBERTonTweets"
 cfg.dataset = "task1and2"
 cfg.remove_stopwords = False
 cfg.lemmatize = False
@@ -54,6 +54,8 @@ elif cfg.model == "EssayToEmotionFrozenBERT":
     model = EssayToEmotionFrozenBERT(cfg)
 elif cfg.model == "EssayToEmotionElectra":
     model = EssayToEmotionElectra(cfg)
+elif cfg.model == "EssayToEmotionDistilBERTonTweets":
+    model = EssayToEmotionDistilBERTonTweets(cfg)
 else:
     raise ValueError(f"Model type not identified. Recieved {cfg.model}")
 
