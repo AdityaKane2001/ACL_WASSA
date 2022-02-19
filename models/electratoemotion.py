@@ -27,7 +27,7 @@ class EssayToEmotionElectra(nn.Module):
         self.tokenizer = ElectraTokenizer.from_pretrained("google/electra-small-discriminator",
                                                        do_lower_case=True)
 
-        self.electra = ElectraTokenizer.from_pretrained("google/electra-small-discriminator")
+        self.electra = ElectraModel.from_pretrained("google/electra-small-discriminator")
 
         if self.cfg.freeze_pretrained:
             for param in self.electra.parameters():
