@@ -118,15 +118,15 @@ class WASSADataset(torch.utils.data.Dataset):
 
         return {
             "inputs":  # (inputs_tuple,outputs_tuple)
-                (  # Inputs tuple
+                [  # Inputs tuple
                     cleaned_text,
                     torch.tensor(self.gender[idx]),
                     torch.tensor(self.education[idx]),
                     torch.tensor(self.race[idx]),
                     torch.tensor(self.age[idx]),
                     torch.tensor(self.income[idx]),
-                ),
-            "outputs": (  # Outputs tuple
+                ],
+            "outputs": [  # Outputs tuple
                 torch.tensor(self.EMOTION_DICT[self.emotion[idx]]),
                 torch.tensor(self.empathy[idx], dtype=torch.float32),
                 torch.tensor(self.distress[idx], dtype=torch.float32),
@@ -146,7 +146,8 @@ class WASSADataset(torch.utils.data.Dataset):
                 torch.tensor(self.iri_personal_distress[idx],
                              dtype=torch.float32),
                 torch.tensor(self.iri_empathatic_concern[idx],
-                             dtype=torch.float32))
+                             dtype=torch.float32)
+                ]
         }
 
 
