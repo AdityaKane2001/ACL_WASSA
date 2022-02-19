@@ -8,6 +8,8 @@ from torch import nn
 from datetime import datetime, timedelta
 
 
+COMMON_DS_PATH = "/content/drive/My Drive/input_data/"
+
 def get_file_to_df(filepath):
     if filepath.endswith(".tsv"):
         return pd.read_csv(filepath, sep="\t")
@@ -45,3 +47,4 @@ def get_classification_report(y_true, y_pred):
         y_true, y_pred, output_dict=True)
     report = pd.DataFrame(result_dict).transpose()
     return report
+
