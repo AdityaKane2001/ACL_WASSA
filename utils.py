@@ -8,7 +8,7 @@ from torch import nn
 from datetime import datetime, timedelta
 
 
-COMMON_DS_PATH = "/content/drive/My Drive/input_data/"
+COMMON_DS_PATH = "/content/drive/MyDrive/input_data/"
 
 def get_file_to_df(filepath):
     if filepath.endswith(".tsv"):
