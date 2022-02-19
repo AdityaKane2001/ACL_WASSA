@@ -23,7 +23,7 @@ nltk.download('brown')
 class WASSADataset(torch.utils.data.Dataset):
 
     def __init__(self, raw_df, cfg):
-        
+        super(WASSADataset, self).__init__()
         self.cfg = cfg
 
         self.raw_df = raw_df
