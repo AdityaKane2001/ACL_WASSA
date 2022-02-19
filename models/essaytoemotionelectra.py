@@ -46,6 +46,7 @@ class EssayToEmotionElectra(nn.Module):
 
     def forward(self, batch):
         """Mandatory forward method"""
+        print(batch)
         x = self.electra(**batch["inputs"][0])[1]  # (batch_size, hidden_size)
 
         emotion = self.emotion_lin(x)

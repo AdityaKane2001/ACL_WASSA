@@ -152,15 +152,6 @@ class WASSADataset(torch.utils.data.Dataset):
 
 def get_dataset(cfg):
     if cfg.dataset == "task1and2":
-        ### TODO
-        """
-        1. pass raw_df instead of path to the dataset DONE
-        2. split the raw_df in train_df and valid_df DONE
-        3. fetch labels from the train_df 
-        4. do the imbalance stuff
-        5. pass train_df and valid_df to generate 2 datasets, these will be passed DONE
-        into 2 dataloaders
-        """
         raw_df = get_file_to_df(os.path.join(
             cfg.dataset_root_dir, "messages_train_ready_for_WS.tsv"))
         from sklearn.model_selection import train_test_split
