@@ -23,7 +23,7 @@ class EssayToEmotionBERT(nn.Module):
     def __init__(self, cfg):
         """Initializes all layers."""
         self.cfg = cfg
-        super().__init__()
+        super().__init__() # imp
         self.tokenizer = BertTokenizer.from_pretrained("bert-base-uncased",
                                                        do_lower_case=True)
 
@@ -115,7 +115,7 @@ class EssayToEmotionBERT(nn.Module):
     ### Train and eval loops
     def train_epoch(self, train_ds, optimizer, criteria, progress_bar):
         """Training loop for one epoch."""
-        self.train()
+        self.train() # imp
         epoch_loss = []
         epoch_acc = []
         epoch_f1 = []
@@ -160,8 +160,8 @@ class EssayToEmotionBERT(nn.Module):
         val_epoch_loss = []
         val_epoch_acc = []
         val_epoch_f1 = []
-        self.eval()
-        with torch.no_grad():
+        self.eval() # imp
+        with torch.no_grad(): # imp
             for val_batch in val_ds:
                 val_batch["inputs"][0] = self.tokenizer(
                     text=val_batch["inputs"][0],
