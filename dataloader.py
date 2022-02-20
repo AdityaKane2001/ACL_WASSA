@@ -149,7 +149,35 @@ class WASSADataset(torch.utils.data.Dataset):
                              dtype=torch.float32))
         }
 
+def over_under_sample(df, shuffle = True):
+    def sample(rows, req_len):
+        return [rows[i%len(rows)] for i in range(req_len)]
 
+    if shuffle:
+        df.sample(frac=1).reset_index(drop=True)
+    data_dict = {'joy': [],
+     'neutral': [],
+     'fear': [],
+     'surprise': [],
+     'anger': [],
+     'sadness': [],
+     'disgust': []}
+
+    for i in range(len(df)):
+        data_dict[df['emotion'][i]].append(list(df.iloc[i]))
+    req_len = len(df)//len(data_dict)
+
+    for lab in data_dict:
+        data_dict[lab] = sample(data_dict[lab], req_len)
+    df_rows = []
+    for lab in data_dict:
+        df_rows += data_dict[lab]
+    df_new = pd.DataFrame(df_rows, columns = list(df.columns))
+    if shuffle:
+        df_new.sample(frac=1).reset_index(drop=True)
+    return df_new
+
+    
 def get_dataset(cfg):
     if cfg.dataset == "task1and2":
         ### TODO
@@ -162,12 +190,12 @@ def get_dataset(cfg):
         into 2 dataloaders
         """
         raw_df = get_file_to_df(os.path.join(
-            cfg.dataset_root_dir, "messages_train_ready_for_WS.tsv"))
+            cfg.dataset_root_dir, "over_under_sample.csv"))
         from sklearn.model_selection import train_test_split
         train_df, valid_df = train_test_split(raw_df, train_size=0.8)
         train_df = train_df.reset_index()
         valid_df = valid_df.reset_index()
-        
+        if cfg.
         emotion = train_df["emotion"]
         EMOTION_DICT = {
             "anger": 0,
