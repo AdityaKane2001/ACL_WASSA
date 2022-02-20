@@ -153,12 +153,15 @@ class WASSADataset(torch.utils.data.Dataset):
 
 def get_dataset(cfg):
     if cfg.dataset == "task1and2":
-        raw_df = get_file_to_df(os.path.join(
+        train_df = get_file_to_df(os.path.join(
             cfg.dataset_root_dir, "messages_train_ready_for_WS.tsv"))
-        from sklearn.model_selection import train_test_split
-        train_df, valid_df = train_test_split(raw_df, train_size=0.8)
-        train_df = train_df.reset_index()
-        valid_df = valid_df.reset_index()
+        # from sklearn.model_selection import train_test_split
+        # train_df, valid_df = train_test_split(raw_df, train_size=0.8)
+        # train_df = train_df.reset_index()
+        # valid_df = valid_df.reset_index()
+
+        valid_df = get_file_to_df(os.path.join(
+            cfg.dataset_root_dir, "messages_dev_features_ready_for_WS_2022.tsv"))
         
         emotion = train_df["emotion"]
         EMOTION_DICT = {

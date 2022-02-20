@@ -27,8 +27,8 @@ class EssayToEmotionDistilBERTonTweets(nn.Module):
         self.tokenizer = AutoTokenizer.from_pretrained("bhadresh-savani/distilbert-base-uncased-emotion",
                                                        do_lower_case=True)
 
-        self.bert = AutoModelForSequenceClassification.from_pretrained(
-            "bhadresh-savani/distilbert-base-uncased-emotion", num_classes=7)
+        self.bert = AutoModel.from_pretrained(
+            "bhadresh-savani/distilbert-base-uncased-emotion")
 
         if self.cfg.freeze_pretrained:
             for param in self.bert.parameters():
@@ -49,10 +49,10 @@ class EssayToEmotionDistilBERTonTweets(nn.Module):
         """Mandatory forward method"""
         x = self.bert(**batch["inputs"][0])[1]  # (batch_size, hidden_size)
 
-        # emotion = self.emotion_lin(x)
-        # emotion = self.emotion_softmax(emotion)
+        emotion = self.emotion_lin(x)
+        emotion = self.emotion_softmax(emotion)
 
-        return (x, None)
+        return (emotion, None)
 
     ### Utilities
     def push_all_to_device(self, device):
