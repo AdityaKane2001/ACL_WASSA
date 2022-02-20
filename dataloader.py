@@ -195,7 +195,7 @@ def get_dataset(cfg):
         train_df, valid_df = train_test_split(raw_df, train_size=0.8)
         train_df = train_df.reset_index()
         valid_df = valid_df.reset_index()
-        if cfg.
+
         emotion = train_df["emotion"]
         EMOTION_DICT = {
             "anger": 0,
