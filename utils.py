@@ -10,11 +10,11 @@ from datetime import datetime, timedelta
 
 COMMON_DS_PATH = "/content/drive/MyDrive/input_data/"
 
-def get_file_to_df(filepath):
+def get_file_to_df(filepath, **kwargs):
     if filepath.endswith(".tsv"):
-        return pd.read_csv(filepath, sep="\t")
+        return pd.read_csv(filepath, sep="\t", **kwargs)
     elif filepath.endswith(".csv"):
-        return pd.read_csv(filepath)
+        return pd.read_csv(filepath, **kwargs)
 
 
 def get_run_timestr():
