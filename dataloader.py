@@ -161,7 +161,7 @@ def get_dataset(cfg):
         # valid_df = valid_df.reset_index()
 
         valid_df = get_file_to_df(os.path.join(
-            cfg.dataset_root_dir, "messages_dev_features_ready_for_WS_2022.tsv"))
+            cfg.dataset_root_dir, "messages_dev_features_ready_for_WS_2022.tsv"), encoding="ISO-8859-1")
         
         emotion = train_df["emotion"]
         EMOTION_DICT = {
