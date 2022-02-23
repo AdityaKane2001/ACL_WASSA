@@ -1,0 +1,13 @@
+import torch
+from torch import nn
+from utils import *
+from dataloader import get_dataset
+from transformers import BertTokenizer, BertForPreTraining
+
+
+class EssayToEmpathyBert(nn.Module):
+    def __init__(self, cfg):
+        super(EssayToEmpathyBert, self).__init__()
+
+        self.bert = RobertaModel.from_pretrained("roberta-base")
+        self.tokenizer = RobertaTokenizer.from_pretrained("roberta-base")
