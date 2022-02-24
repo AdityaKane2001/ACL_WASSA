@@ -4,6 +4,7 @@ from utils import *
 from dataloader import get_dataset
 from transformers import BertTokenizer, BertModel
 from sklearn.preprocessing import StandardScaler
+import scipy
 
 class EssayToEmpathyBert(nn.Module):
     def __init__(self, cfg):
@@ -46,10 +47,22 @@ class EssayToEmpathyBert(nn.Module):
         }
         return dbatch
 
+    def tocpu(self, obj):
+        return obj.detach().cpu().numpy()
+
+    def calculate_metrics(self, batch, outputs):
+        np_batch_outputs =self.tocpu(batch["outputs"][0])
+        np_outputs = self.tocpu(outputs[0])
+        pearson_coeff = scipy.stats.pearsonr(np_batch_outputs, np_outputs)
+        return pearson_coeff
+
     def train_epoch(self, train_dataloader, optimizer):
        
         self.train()
         epoch_loss = []
+        epoch_distress_pf = []
+        epoch_empathy_pf = []
+
         for batchnum, batch in enumerate(train_dataloader):
              
             batch["inputs"][0] = self.tokenizer(text=batch["inputs"][0],
@@ -74,7 +87,9 @@ class EssayToEmpathyBert(nn.Module):
             loss.backward()
 
             optimizer.step()
-
+            print('batch', batch.shape())
+            print('output', output.shape())
+            #epoch_distress_pf = self.calculate_metrics(batch)
             loss_ = loss.detach().cpu().numpy()
 
             epoch_loss.append(loss_)
