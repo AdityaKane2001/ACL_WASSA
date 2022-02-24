@@ -161,8 +161,8 @@ class WASSADataset(torch.utils.data.Dataset):
                 torch.tensor(self.iri_empathatic_concern[idx],
                              dtype=torch.float32)),
             "scaling_parameters": {
-                'empathy_parameters': self.empathy_scaler.get_params(),
-                'distress_parameters': self.distress_scaler.get_params()
+                'empathy_parameters': self.empathy_scaler.mean_,
+                'distress_parameters': self.distress_scaler.scale_
             }
                 
             

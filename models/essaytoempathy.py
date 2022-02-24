@@ -8,14 +8,15 @@ from sklearn.preprocessing import StandardScaler
 class EssayToEmpathyBert(nn.Module):
     def __init__(self, cfg):
         super(EssayToEmpathyBert, self).__init__()
-        self.config = config
+        self.cfg = cfg
         self.bert = BertModel.from_pretrained("bert-base-uncased")
         self.tokenizer = BertTokenizer.from_pretrained("bert-base-uncased")
         self.regressor = nn.Sequential(
-            nn.Dropout(drop_rate),
+            nn.Dropout(0),
             nn.Linear(768, 2))
         self.criterion = nn.MSELoss()
-        self.empathy_scaler = StandardScaler()
+        # self.distress_criterion = nn.MSELoss()
+        self.optimizer = torch.optim.Adam(self.parameters(), lr=self.cfg.learning_rate)
         self.device = torch.device(
             "cuda") if torch.cuda.is_available() else torch.device("cpu")
 
@@ -26,12 +27,22 @@ class EssayToEmpathyBert(nn.Module):
         return x
     
     def loss_fn(self, outputs, batch):
-        return self.criterion(batch, batch['outputs'][1])
-    
-    def push_back_to_device(self, batch):
+        # print(outputs.shape)
+        # print(batch['outputs'][1].shape)
+
+        loss = self.criterion(outputs, torch.cat([batch['outputs'][1], batch['outputs'][2]], dim=-1))
+        return loss
+
+    def push_batch_to_device(self, batch):
         dbatch = {
             "inputs": [obj.to(self.device) for obj in batch["inputs"]],
-            "outputs": [obj.to(self.device) for obj in batch["outputs"]]
+            "outputs": [obj.to(self.device) for obj in batch["outputs"]],
+            "scaling_parameters" :
+            {
+                'empathy_parameters': batch["scaling_parameters"]["empathy_parameters"].to(self.device),
+                'distress_parameters': batch["scaling_parameters"]["distress_parameters"].to(self.device)
+            }
+                
         }
         return dbatch
 
@@ -50,8 +61,8 @@ class EssayToEmpathyBert(nn.Module):
                                                 return_tensors="pt")
             
             # batch["inputs"][0] = {"input_ids": tensor, "attention_mask": tensor, "token_ids": tensor}
-            batch['outputs'][1] = batch['outputs'][1].numpy()
-            batch['outputs'][1] = self.empathy_scaler.fit()
+            # batch['outputs'][1] = batch['outputs'][1].numpy()
+            # batch['outputs'][1] = self.empathy_scaler.fit()
             batch = self.push_batch_to_device(batch)
 
             # forward
@@ -106,13 +117,15 @@ class EssayToEmpathyBert(nn.Module):
 
     def fit(self):
         train_dataloader, val_dataloader = get_dataset(self.cfg)
-        for batch in train_dataloader:
-            print(batch)
-            break
+        # for batch in train_dataloader:
+        #     print(batch)
+        #     break
+        self.bert = self.bert.to(self.device)
+        self.regressor = self.regressor.to(self.device)
 
         losses = []
         val_losses = []
-        for epoch in range(self.cfg.num_epoch):
+        for epoch in range(self.cfg.epochs):
 
             loss = self.train_epoch(train_dataloader, self.optimizer)
             losses.append(np.mean(loss))
@@ -121,4 +134,3 @@ class EssayToEmpathyBert(nn.Module):
             val_losses.append(np.mean(val_loss))
             print(loss)
             print(val_loss)
-
