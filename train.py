@@ -52,5 +52,5 @@ elif cfg.model == "EssayToEmotionBERT":
     model = EssayToEmotionBERT(cfg)'''
 
 model = EssayToEmpathyBert(cfg)
-``
+
 model.fit()
