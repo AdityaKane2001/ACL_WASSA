@@ -3,18 +3,19 @@ from torch import nn
 from utils import *
 from dataloader import get_dataset
 from transformers import BertTokenizer, BertModel
-
+from sklearn.preprocessing import StandardScaler
 
 class EssayToEmpathyBert(nn.Module):
     def __init__(self, cfg):
         super(EssayToEmpathyBert, self).__init__()
 
-        self.bert = RobertaModel.from_pretrained("bert-base-uncased")
-        self.tokenizer = RobertaTokenizer.from_pretrained("bert-base-uncased")
+        self.bert = BertModel.from_pretrained("bert-base-uncased")
+        self.tokenizer = BertTokenizer.from_pretrained("bert-base-uncased")
         self.regressor = nn.Sequential(
             nn.Dropout(drop_rate),
             nn.Linear(D_in, D_out))
         self.criterion = nn.MSELoss()
+        self.empathy_scaler = StandardScaler()
 
     def forward(self, batch):
         x = self.bert(**batch["inputs"][0])[1]
@@ -47,7 +48,8 @@ class EssayToEmpathyBert(nn.Module):
                                                 return_tensors="pt")
             
             # batch["inputs"][0] = {"input_ids": tensor, "attention_mask": tensor, "token_ids": tensor}
-            
+            batch['outputs'][1] = batch['outputs'][1].numpy()
+            batch['outputs'][1] = self.empathy_scaler.fit()
             batch = self.push_batch_to_device(batch)
 
             # forward
@@ -100,17 +102,21 @@ class EssayToEmpathyBert(nn.Module):
 
         return epoch_loss
 
-            def fit(self):
-                train_dataloader, val_dataloader = get_dataset(self.cfg)
-                losses = []
-                val_losses = []
-                for epoch in range(self.cfg.num_epoch):
+    def fit(self):
+        train_dataloader, val_dataloader = get_dataset(self.cfg)
+        for batch in train_dataloader:
+            print(batch)
+            break
 
-                    loss = self.train_epoch(train_dataloader, self.optimizer)
-                    losses.append(np.mean(loss))
+        losses = []
+        val_losses = []
+        for epoch in range(self.cfg.num_epoch):
 
-                    val_loss = self.val_epoch(val_dataloader)
-                    val_losses.append(np.mean(val_loss))
-                    print(loss)
-                    print(val_loss)
+            loss = self.train_epoch(train_dataloader, self.optimizer)
+            losses.append(np.mean(loss))
+
+            val_loss = self.val_epoch(val_dataloader)
+            val_losses.append(np.mean(val_loss))
+            print(loss)
+            print(val_loss)
 
