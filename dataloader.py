@@ -209,7 +209,7 @@ def get_dataset(cfg):
         into 2 dataloaders
         """
         raw_df = get_file_to_df(os.path.join(
-            cfg.dataset_root_dir, "over_under_sample.tsv"))
+            cfg.dataset_root_dir, "messages_train_ready_for_WS.tsv"))
         from sklearn.model_selection import train_test_split
         train_df, valid_df = train_test_split(raw_df, train_size=0.8)
         train_df = train_df.reset_index()
