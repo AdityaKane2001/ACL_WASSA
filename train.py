@@ -31,6 +31,7 @@ cfg.save_best_only = True
 cfg.monitor_metric = "f1"  # One of [acc, loss, f1]
 cfg.balanced = False
 cfg.over_under_sample = True
+cfg.drop_rate = 0
 
 #wandb stuff
 timestr = get_run_timestr()

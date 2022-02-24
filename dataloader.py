@@ -5,6 +5,8 @@ import numpy as np
 import re
 import torch
 import os
+from sklearn.preprocessing import StandardScaler
+
 
 import spacy
 
@@ -38,12 +40,23 @@ class WASSADataset(torch.utils.data.Dataset):
         self.race = self.raw_df["race"]
         self.age = self.raw_df["age"]
         self.income = self.raw_df["income"]
+        price_scaler = StandardScaler()
 
         # Outputs
         self.emotion = self.raw_df["emotion"]
-
+        self.empathy_scaler = StandardScaler()
         self.empathy = self.raw_df["empathy"]
+        self.empathy_scaler.fit(self.empathy.reshape(-1, 1))
+        self.empathy = self.empathy_scaler.transform(self.empathy.reshape(-1, 1))
+        
+        #self.distress = self.raw_df["distress"]
+
+        self.distress_scaler = StandardScaler()
         self.distress = self.raw_df["distress"]
+        self.distress_scaler.fit(self.distress.reshape(-1, 1))
+        self.distress = self.distress_scaler.transform(self.distress.reshape(-1, 1))
+
+
 
         self.personality_conscientiousness = self.raw_df[
             "personality_conscientiousness"]
@@ -146,7 +159,13 @@ class WASSADataset(torch.utils.data.Dataset):
                 torch.tensor(self.iri_personal_distress[idx],
                              dtype=torch.float32),
                 torch.tensor(self.iri_empathatic_concern[idx],
-                             dtype=torch.float32))
+                             dtype=torch.float32)),
+            "scaling_parameters": {
+                'empathy_parameters': self.empathy_scaler.get_params(),
+                'distress_parameters': self.distress_scaler.get_params()
+            }
+                
+            
         }
 
 def over_under_sample(df, shuffle = True):

@@ -8,7 +8,7 @@ from sklearn.preprocessing import StandardScaler
 class EssayToEmpathyBert(nn.Module):
     def __init__(self, cfg):
         super(EssayToEmpathyBert, self).__init__()
-
+        self.config = config
         self.bert = BertModel.from_pretrained("bert-base-uncased")
         self.tokenizer = BertTokenizer.from_pretrained("bert-base-uncased")
         self.regressor = nn.Sequential(
