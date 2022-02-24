@@ -13,7 +13,7 @@ class EssayToEmpathyBert(nn.Module):
         self.tokenizer = BertTokenizer.from_pretrained("bert-base-uncased")
         self.regressor = nn.Sequential(
             nn.Dropout(drop_rate),
-            nn.Linear(D_in, D_out))
+            nn.Linear(768, 2))
         self.criterion = nn.MSELoss()
         self.empathy_scaler = StandardScaler()
 
