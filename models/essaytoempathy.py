@@ -87,8 +87,8 @@ class EssayToEmpathyBert(nn.Module):
             loss.backward()
 
             optimizer.step()
-            print('batch', batch.shape())
-            print('output', output.shape())
+            print('batch', np.shape(batch))
+            print('output', np.shape(output))
             #epoch_distress_pf = self.calculate_metrics(batch)
             loss_ = loss.detach().cpu().numpy()
 
