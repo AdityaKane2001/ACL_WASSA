@@ -44,8 +44,8 @@ wandb.init(entity="acl_wassa_pictxmanipal",
            config=cfg.to_dict())
 
 # model selection
-if cfg.model == "EssayToAllBERT":
-    model = EssayToAllBERT(cfg)
+if cfg.model == "essaytoempathy":
+    model = EssayToEmpathyBert(cfg)
 elif cfg.model == "EssayToEmotionEmpathyDistressBERT":
     model = EssayToEmotionEmpathyDistressBERT(cfg)
 elif cfg.model == "EssayToEmotionBERT":
