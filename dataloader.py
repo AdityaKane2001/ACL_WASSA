@@ -45,14 +45,14 @@ class WASSADataset(torch.utils.data.Dataset):
         # Outputs
         self.emotion = self.raw_df["emotion"]
         self.empathy_scaler = StandardScaler()
-        self.empathy = self.raw_df["empathy"]
+        self.empathy = np.array(self.raw_df["empathy"])
         self.empathy_scaler.fit(self.empathy.reshape(-1, 1))
         self.empathy = self.empathy_scaler.transform(self.empathy.reshape(-1, 1))
         
         #self.distress = self.raw_df["distress"]
 
         self.distress_scaler = StandardScaler()
-        self.distress = self.raw_df["distress"]
+        self.distress = np.array(self.raw_df["distress"])
         self.distress_scaler.fit(self.distress.reshape(-1, 1))
         self.distress = self.distress_scaler.transform(self.distress.reshape(-1, 1))
 

@@ -16,6 +16,8 @@ class EssayToEmpathyBert(nn.Module):
             nn.Linear(768, 2))
         self.criterion = nn.MSELoss()
         self.empathy_scaler = StandardScaler()
+        self.device = torch.device(
+            "cuda") if torch.cuda.is_available() else torch.device("cpu")
 
     def forward(self, batch):
         x = self.bert(**batch["inputs"][0])[1]
