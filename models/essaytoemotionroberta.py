@@ -1,65 +1,86 @@
-from transformers import RobertaTokenizer, RobertaModel
 import torch
 from torch import nn
 
-import numpy as np
-from tqdm.auto import tqdm
-import wandb
-
-import os
-import seaborn as sns
-import matplotlib.pyplot as plt
-
-from dataloader import get_dataset
 from utils import *
+from dataloader import get_dataset
 
+from transformers import RobertaModel, RobertaTokenizer
+
+# batch = {
+#     "inputs":  # (inputs_tuple,outputs_tuple)
+#     [  # Inputs tuple
+#         cleaned_text,
+#         self.gender[idx]),
+#         self.education[idx]),
+#         self.race[idx]),
+#         self.age[idx]),
+#         self.income[idx]),
+#     ],
+#     "outputs": [  # Outputs tuple
+#         self.EMOTION_DICT[self.emotion[idx]]), 
+#         self.empathy[idx], dtype=torch.float32),
+#         self.distress[idx], dtype=torch.float32),
+#         self.personality_conscientiousness[idx],
+#                      dtype=torch.float32),
+#         self.personality_openess[idx],
+#                      dtype=torch.float32),
+#         self.personality_extraversion[idx],
+#                      dtype=torch.float32),
+#         self.personality_agreeableness[idx],
+#                      dtype=torch.float32),
+#         self.personality_stability[idx],
+#                      dtype=torch.float32),
+#         self.iri_perspective_taking[idx],
+#                      dtype=torch.float32),
+#         self.iri_fantasy[idx], dtype=torch.float32),
+#         self.iri_personal_distress[idx],
+#                      dtype=torch.float32),
+#         self.iri_empathatic_concern[idx],
+#                      dtype=torch.float32)
+#     ]
+# }
 
 class EssayToEmotionRoBERTa(nn.Module):
-    """
-    Comprises of a bert based self which takes tokenized essay and outputs:
-    emotion, empathy and distress. 
-    """
-
     def __init__(self, cfg):
-        """Initializes all layers."""
-        self.cfg = cfg
-        super().__init__()
-        self.tokenizer = RobertaTokenizer.from_pretrained("roberta-base",
-                                                       do_lower_case=True)
+        super(EssayToEmotionRoBERTa, self).__init__()
 
+
+        # 1. Initialize BERT model
         self.bert = RobertaModel.from_pretrained("roberta-base")
+        self.tokenizer = RobertaTokenizer.from_pretrained("roberta-base")
+               
+        # 2. Initialize classification head
+        self.linear = nn.Linear(768, cfg.num_classes) ## CHANGE THIS
+        self.softmax = nn.Softmax(dim=-1) ## DELETE THIS
 
-        if self.cfg.freeze_pretrained:
-            for param in self.bert.parameters():
-                param.requires_grad = False
+        self.criterion = nn.CrossEntropyLoss() # (y_pred, y_true)
 
-        self.emotion_lin = nn.Linear(self.bert.config.hidden_size,
-                                     self.cfg.num_classes)
-        self.emotion_softmax = nn.Softmax(dim=-1)
-        self.class_names = ("anger", "disgust", "fear", "joy", "neutral",
-                            "sadness", "surprise")
-
-        self.device = torch.device(
+        device = torch.device(
             "cuda") if torch.cuda.is_available() else torch.device("cpu")
+        self.bert = self.bert.to(device)
+        self.linear = self.linear.to(device)
+        self.softmax = self.softmax.to(device)
 
-        self.push_all_to_device(self.device)
+        self.optmizer = torch.optim.Adam(self.parameters(), lr=self.cfg.learning_rate)
+
 
     def forward(self, batch):
-        """Mandatory forward method"""
-        x = self.bert(**batch["inputs"][0])[1]  # (batch_size, hidden_size)
+        # text: [batch_size, seq_len] at ## batch["inputs"][0]
+        # 3. Implement `forward` method
+        x = self.bert(**batch["inputs"][0])[1]
 
-        emotion = self.emotion_lin(x)
-        emotion = self.emotion_softmax(emotion)
+        x = self.linear(x)
+        x = self.softmax(x)
+        # x: (torch.tensor,torch.tensor) shapes: [(bs, seq_len, 768), (bs, 768)]
 
-        return (emotion, None)
+        return x
 
-    ### Utilities
-    def push_all_to_device(self, device):
-        """Loads all layers to GPU."""
-        self.bert = self.bert.to(device)
+    def loss_fn(self, outputs, batch):
+        # 6. Implement loss functions and criteria functions
 
-        self.emotion_lin = self.emotion_lin.to(device)
-        self.emotion_softmax = self.emotion_softmax.to(device)
+        # y_pred: (bs, 7)
+        # y_true: (bs,)
+        return self.criterion(outputs, batch["outputs"][0])
 
     def push_batch_to_device(self, batch):
         """Loads members of a batch to GPU. Note that all members are torch 
@@ -71,54 +92,25 @@ class EssayToEmotionRoBERTa(nn.Module):
         }
         return dbatch
 
-    def push_to_wandb(self, stat_dict, val_cm):
-        """Push statistics to wandb after epoch. Plot confusion matrix."""
-        ax = sns.heatmap(val_cm,
-                         annot=True,
-                         xticklabels=self.class_names,
-                         yticklabels=self.class_names,
-                         fmt="d")
-        ax.get_figure().savefig("confusion.jpg")
-        stat_dict["confusion_matrix"] = wandb.Image("confusion.jpg")
 
-        wandb.log(stat_dict)
-        plt.clf()
-        os.remove("confusion.jpg")
-        del ax
+    def train_epoch(self, train_dataloader, optimizer):
+        # 4. Implement a backward pass method
+        # 5. Implement a training method
 
-    def get_criteria(self):
-        """Get loss funtions for all outputs. """
-        criteria = []
-        if self.cfg.classification_loss == "categorical_crossentropy":
-            criteria += [nn.CrossEntropyLoss()]
-        if self.cfg.regression_loss == "mean_squared_error":
-            criteria += [nn.MSELoss()] * 2
-        return criteria
+        # class A():
+        #     def __call__(self, inputs):
+        #         return self.forward(inputs)
+        
+        # a = A()
+        # a()
+        # >>> 10
 
-    ### Metrics
-    def loss_fn(self, batch, outputs, criteria):
-        """Loss function. Currently only calculated loss for emotions."""
-        loss = criteria[0](outputs[0], batch["outputs"][0])
-        return loss
-
-    def calculate_metrics(self, batch, outputs):
-        """Detaches and loads relavent tensors to CPU and calculated metrics."""
-        np_batch_outputs = batch["outputs"][0].detach().cpu().numpy()
-        np_outputs = outputs[0].detach().cpu().numpy()
-
-        acc = accuracy(np_batch_outputs, np_outputs)
-        f1 = f1_loss(np_batch_outputs, np_outputs)
-        cm = confusion_matrix(np_batch_outputs, np_outputs)
-        return acc, f1, cm
-
-    ### Train and eval loops
-    def train_epoch(self, train_ds, optimizer, criteria, progress_bar):
-        """Training loop for one epoch."""
+        # self.bert -> instance
+        # self.bert -> method
         self.train()
         epoch_loss = []
-        epoch_acc = []
-        epoch_f1 = []
-        for batchnum, batch in enumerate(train_ds):
+        for batchnum, batch in enumerate(train_dataloader):
+             
             batch["inputs"][0] = self.tokenizer(text=batch["inputs"][0],
                                                 add_special_tokens=True,
                                                 return_attention_mask=True,
@@ -126,104 +118,71 @@ class EssayToEmotionRoBERTa(nn.Module):
                                                 padding='max_length',
                                                 truncation=True,
                                                 return_tensors="pt")
-
+            
+            # batch["inputs"][0] = {"input_ids": tensor, "attention_mask": tensor, "token_ids": tensor}
+            
             batch = self.push_batch_to_device(batch)
 
-            outputs = self(batch)
+            # forward
+            output = self(batch)
 
-            loss = self.loss_fn(batch, outputs, criteria)
+            # backward
+            loss = self.loss_fn(output, batch)
             optimizer.zero_grad()
             loss.backward()
 
             optimizer.step()
 
-            acc, f1, _ = self.calculate_metrics(batch, outputs)
             loss_ = loss.detach().cpu().numpy()
 
-            # record metrics
             epoch_loss.append(loss_)
-            epoch_acc.append(acc)
-            epoch_f1.append(f1)
 
-            # progress bar
-            progress_bar.set_postfix(loss=loss_, accuracy=acc, f1=f1)
-            progress_bar.update(1)
-            progress_bar.set_postfix(loss=np.mean(epoch_loss),
-                                     accuracy=np.mean(epoch_acc),
-                                     f1=np.mean(epoch_f1))
-
-        return np.mean(epoch_loss), np.mean(epoch_acc), np.mean(epoch_f1)
-
-    def eval_epoch(self, val_ds, criteria):
-        """Validation loop. val DS has exactly one batch."""
-        val_epoch_loss = []
-        val_epoch_acc = []
-        val_epoch_f1 = []
+        return epoch_loss
+    
+    def val_epoch(self, train_dataloader):
         self.eval()
+        epoch_loss = []
         with torch.no_grad():
-            for val_batch in val_ds:
-                val_batch["inputs"][0] = self.tokenizer(
-                    text=val_batch["inputs"][0],
-                    add_special_tokens=True,
-                    return_attention_mask=True,
-                    max_length=self.cfg.maxlen,
-                    padding='max_length',
-                    truncation=True,
-                    return_tensors="pt")
+            for batchnum, batch in enumerate(train_dataloader):
 
-                val_batch = self.push_batch_to_device(val_batch)
+                batch["inputs"][0] = self.tokenizer(text=batch["inputs"][0],
+                                                    add_special_tokens=True,
+                                                    return_attention_mask=True,
+                                                    max_length=self.cfg.maxlen,
+                                                    padding='max_length',
+                                                    truncation=True,
+                                                    return_tensors="pt")
 
-                val_outputs = self(val_batch)
-                val_loss = criteria[0](val_outputs[0],
-                                       val_batch["outputs"][0])
-                val_acc, val_f1, val_cm = self.calculate_metrics(
-                    val_batch, val_outputs)
-                val_epoch_loss.append(val_loss.detach().cpu().numpy())
-                val_epoch_acc.append(val_acc)
-                val_epoch_f1.append(val_f1)
-        return np.mean(val_epoch_loss), np.mean(val_epoch_acc), np.mean(val_epoch_f1), val_cm
+                # batch["inputs"][0] = {"input_ids": tensor, "attention_mask": tensor, "token_ids": tensor}
 
-    ### Main driver function
+                batch = self.push_batch_to_device(batch)
+
+                # forward
+                output = self(batch)
+
+                # backward
+                loss = self.loss_fn(output, batch)
+                # optimizer.zero_grad()
+                # loss.backward()
+
+                # optimizer.step()
+
+                loss_ = loss.detach().cpu().numpy()
+
+                epoch_loss.append(loss_)
+
+        return epoch_loss
+    
     def fit(self):
-        best_metrics = {"acc": 0.,
-                        "loss": 0.,
-                        "f1": 0.}
-        optimizer = get_optimizer(self.cfg, self.parameters())
-        criteria = self.get_criteria()
+        train_dataloader, val_dataloader = get_dataset(self.cfg)
+        losses = []
+        val_losses = []
+        for epoch in range(self.cfg.num_epoch):
 
-        train_ds, val_ds = get_dataset(self.cfg)
+            loss = self.train_epoch(train_dataloader, self.optimizer)
+            losses.append(np.mean(loss))
 
-        for epoch in range(self.cfg.epochs):
-            progress_bar = tqdm(range(len(train_ds)))
-
-            epoch_loss, epoch_acc, epoch_f1 = self.train_epoch(train_ds,
-                                                               optimizer, criteria, progress_bar)
-
-            # validation loop
-            val_loss, val_acc, val_f1, val_cm = self.eval_epoch(
-                val_ds, criteria)
-
-            val_metrics = {
-                "acc": val_acc,
-                "loss": val_loss,
-                "f1": val_f1
-            }
-
-            progress_bar.close()
-
-            if best_metrics[self.cfg.monitor_metric] < val_metrics[self.cfg.monitor_metric]:
-                best_metrics[self.cfg.monitor_metric] = val_metrics[self.cfg.monitor_metric]
-                torch.save(self.state_dict(), f"./ckpts/bert_{epoch}.pt")
-
-            stats_dict = {
-                "epoch": epoch,
-                "train loss": epoch_loss,
-                "train accuracy": epoch_acc,
-                "train macro f1": epoch_f1,
-                "val loss": val_loss,
-                "val accuracy": val_acc,
-                "val macro f1": val_f1,
-            }
-
-            self.push_to_wandb(stats_dict, val_cm)
-
+            val_loss = self.val_epoch(val_dataloader)
+            val_losses.append(np.mean(val_loss))
+            print(loss)
+            print(val_loss)

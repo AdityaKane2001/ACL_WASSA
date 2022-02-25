@@ -31,6 +31,8 @@ cfg.save_best_only = True
 cfg.monitor_metric = "f1"  # One of [acc, loss, f1]
 cfg.balanced = True
 
+# print(cfg.balanced)
+# print(cfg["balanced"])
 
 #wandb stuff
 timestr = get_run_timestr()

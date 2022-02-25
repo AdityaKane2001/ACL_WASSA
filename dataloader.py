@@ -7,6 +7,7 @@ import torch
 import os
 
 import spacy
+from sklearn.preprocessing import StandardScaler
 
 from utils import *
 
@@ -36,8 +37,17 @@ class WASSADataset(torch.utils.data.Dataset):
         self.gender = self.raw_df["gender"]
         self.education = self.raw_df["education"]
         self.race = self.raw_df["race"]
-        self.age = self.raw_df["age"]
-        self.income = self.raw_df["income"]
+
+        self.age = np.array(self.raw_df["age"])
+        self.income = np.array(self.raw_df["income"])
+
+        self.age_scaler = StandardScaler()
+        self.age_scaler.fit(self.age.reshape(-1,1))
+        self.age = self.age_scaler.transform(self.age.reshape(-1, 1))
+
+        self.income_scaler = StandardScaler()
+        self.income_scaler.fit(self.income.reshape(-1, 1))
+        self.income = self.income_scaler.transform(self.income.reshape(-1, 1))
 
         # Outputs
         self.emotion = self.raw_df["emotion"]
@@ -147,7 +157,11 @@ class WASSADataset(torch.utils.data.Dataset):
                              dtype=torch.float32),
                 torch.tensor(self.iri_empathatic_concern[idx],
                              dtype=torch.float32)
-                ]
+                ],
+                "scaling_parameters":{
+                    "age": (self.age_scaler.mean_, self.age_scaler.scale_),
+                    "income": (self.income_scaler.mean_, self.income_scaler.scale_)
+                }
         }
 
 
