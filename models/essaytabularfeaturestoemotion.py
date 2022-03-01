@@ -34,31 +34,31 @@ class EssayTabularFeaturesToEmotionBERT(nn.Module):
         self.gender_mlp = nn.Sequential(
             nn.Linear(3, 64),
             nn.Linear(64, 32),
-            nn.Linear(64, 16),
+            nn.Linear(32, 16),
         )
 
         self.education_mlp = nn.Sequential(
             nn.Linear(6, 64),
             nn.Linear(64, 32),
-            nn.Linear(64, 16),
+            nn.Linear(32, 16),
         )
 
         self.race_mlp = nn.Sequential(
             nn.Linear(6, 64),
             nn.Linear(64, 32),
-            nn.Linear(64, 16),
+            nn.Linear(32, 16),
         )
 
         self.age_mlp = nn.Sequential(
             nn.Linear(1, 64),
             nn.Linear(64, 32),
-            nn.Linear(64, 16),
+            nn.Linear(32, 16),
         )
 
         self.income_mlp = nn.Sequential(
             nn.Linear(1, 64),
             nn.Linear(64, 32),
-            nn.Linear(64, 16),
+            nn.Linear(32, 16),
         )
 
         self.emotion_lin = nn.Linear(self.bert.config.hidden_size + 16*5,
@@ -75,12 +75,14 @@ class EssayTabularFeaturesToEmotionBERT(nn.Module):
     def forward(self, batch):
         """Mandatory forward method"""
         bert_outputs = self.bert(**batch["inputs"][0])[1]  # (batch_size, hidden_size)
-        gender_outputs = self.gender_mlp(one_hot(batch["inputs"][1]-1,num_classes=3))
-        education_outputs = self.education_mlp(one_hot(batch["inputs"][2]-2, num_classes=6))
+        gender_outputs = self.gender_mlp(one_hot(batch["inputs"][1]-1,num_classes=3).float())
+        education_outputs = self.education_mlp(one_hot(batch["inputs"][2]-2, num_classes=6).float())
         race_outputs = self.race_mlp(
-            one_hot(batch["inputs"][3]-1, num_classes=6))
-        age_outputs = self.age_mlp(batch["inputs"][3])
-        income_outputs = self.age_mlp(batch["inputs"][4])
+            one_hot(batch["inputs"][3]-1, num_classes=6).float())
+        
+        # print(batch["inputs"][3])
+        age_outputs = self.age_mlp(torch.reshape(batch["inputs"][4], (-1,1)).float())
+        income_outputs = self.income_mlp(torch.reshape(batch["inputs"][5], (-1,1)).float())
 
 
         x = torch.concat([bert_outputs, gender_outputs, education_outputs, race_outputs, age_outputs, income_outputs], dim=-1)
@@ -94,7 +96,11 @@ class EssayTabularFeaturesToEmotionBERT(nn.Module):
     def push_all_to_device(self, device):
         """Loads all layers to GPU."""
         self.bert = self.bert.to(device)
-
+        self.gender_mlp = self.gender_mlp.to(device)
+        self.education_mlp = self.education_mlp.to(device)
+        self.race_mlp = self.race_mlp.to(device)
+        self.income_mlp =self.income_mlp.to(device)
+        self.age_mlp = self.age_mlp.to(device)
         self.emotion_lin = self.emotion_lin.to(device)
         self.emotion_softmax = self.emotion_softmax.to(device)
 
@@ -135,6 +141,7 @@ class EssayTabularFeaturesToEmotionBERT(nn.Module):
     ### Metrics
     def loss_fn(self, batch, outputs, criteria):
         """Loss function. Currently only calculated loss for emotions."""
+        print(outputs[0].shape,  batch["outputs"][0].shape)
         loss = criteria[0](outputs[0], batch["outputs"][0])
         return loss
 
@@ -167,7 +174,8 @@ class EssayTabularFeaturesToEmotionBERT(nn.Module):
             batch = self.push_batch_to_device(batch)
 
             outputs = self(batch)
-            #                   (y_true, y_pred, criteria)
+
+            #                  (y_true, y_pred, criteria)
             loss = self.loss_fn(batch, outputs, criteria)
             optimizer.zero_grad()
             loss.backward()
