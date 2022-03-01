@@ -35,6 +35,12 @@ class WASSADataset(torch.utils.data.Dataset):
         self.essays = self.raw_df["essay"]
 
         self.gender = self.raw_df["gender"]
+        def gender_map(x):
+            if x==5:
+                return 3
+            return x
+        
+        self.gender = self.gender.map(gender_map)
         self.education = self.raw_df["education"]
         self.race = self.raw_df["race"]
 

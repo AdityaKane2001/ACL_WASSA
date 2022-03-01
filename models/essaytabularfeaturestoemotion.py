@@ -141,7 +141,7 @@ class EssayTabularFeaturesToEmotionBERT(nn.Module):
     ### Metrics
     def loss_fn(self, batch, outputs, criteria):
         """Loss function. Currently only calculated loss for emotions."""
-        print(outputs[0].shape,  batch["outputs"][0].shape)
+        # print(outputs[0].shape,  batch["outputs"][0].shape)
         loss = criteria[0](outputs[0], batch["outputs"][0])
         return loss
 
