@@ -12,7 +12,7 @@ warnings.filterwarnings("ignore")
 # Check before every run
 cfg = mlc.ConfigDict()
 
-cfg.model = "EssayToEmotionBERT"
+cfg.model = "EssayToEmotionElectra"
 cfg.dataset = "task1and2"
 cfg.remove_stopwords = False
 cfg.lemmatize = False
@@ -25,7 +25,7 @@ cfg.mode = "train"
 cfg.classification_loss = "categorical_crossentropy"
 cfg.regression_loss = "mean_squared_error"
 cfg.optimizer = "adam"
-cfg.dataset_root_dir = COMMON_DS_PATH if os.path.exists(COMMON_DS_PATH) else "../input/wassa-input-data/"
+cfg.dataset_root_dir = COMMON_DS_PATH if os.path.exists(COMMON_DS_PATH) else "/kaggle/input/wassa-input-data/"
 cfg.freeze_pretrained = False
 cfg.save_best_only = True
 cfg.monitor_metric = "f1"  # One of [acc, loss, f1]
