@@ -12,13 +12,13 @@ warnings.filterwarnings("ignore")
 # Check before every run
 cfg = mlc.ConfigDict()
 
-cfg.model = "EssayTabularFeaturesToEmotionBERT"
+cfg.model = "EssayToEmotionBERT"
 cfg.dataset = "task1and2"
 cfg.remove_stopwords = False
 cfg.lemmatize = False
 cfg.maxlen = 100
 cfg.num_classes = 7
-cfg.batch_size = 32
+cfg.batch_size = 64
 cfg.epochs = 20
 cfg.learning_rate = 1e-4
 cfg.mode = "train"

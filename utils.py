@@ -40,7 +40,7 @@ def confusion_matrix(y_true, y_pred):
 
 def get_optimizer(cfg, params):
     if cfg.optimizer == "adam":
-        return torch.optim.Adam(params, lr=0.0001)
+        return torch.optim.Adam(params, lr=cfg.learning_rate)
 
 def get_classification_report(y_true, y_pred):
     result_dict = classification_report(
