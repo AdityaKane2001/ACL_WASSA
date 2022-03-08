@@ -301,7 +301,6 @@ def get_dataset(cfg):
         val_ds = BalancedDataset(valid_df, cfg)
         train_ds = torch.utils.data.DataLoader(train_ds,
                                                batch_size=cfg.batch_size,
-                                               sampler=sampler_train,
                                                drop_last=True)
         val_ds = torch.utils.data.DataLoader(val_ds,
                                              batch_size=10000,
