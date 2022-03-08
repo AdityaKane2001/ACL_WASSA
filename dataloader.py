@@ -173,6 +173,7 @@ class WASSADataset(torch.utils.data.Dataset):
 
 class BalancedDataset(torch.utils.data.Dataset):
     def __init__(self, raw_df, cfg):
+        super(WASSADataset, self).__init__()    
         self.EMOTION_DICT={
             "anger": 0,
             "disgust": 1,
@@ -304,6 +305,7 @@ def get_dataset(cfg):
         val_ds = BalancedDataset(valid_df, cfg)
         train_ds = torch.utils.data.DataLoader(train_ds,
                                                batch_size=cfg.batch_size,
+                                               shuffle=True,
                                                drop_last=True)
         val_ds = torch.utils.data.DataLoader(val_ds,
                                              batch_size=10000,
