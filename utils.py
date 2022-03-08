@@ -50,7 +50,7 @@ def get_scheduler(cfg, optimizer):
         if epoch < cfg.warmup_epochs:
             new_lr = (
                 0.5
-                * (1.0 + np.cos(np.pi * epoch / cfg.total_epochs))
+                * (1.0 + np.cos(np.pi * epoch / cfg.epochs))
                 * cfg.learning_rate
             )
             alpha = epoch / cfg.warmup_epochs
@@ -59,7 +59,7 @@ def get_scheduler(cfg, optimizer):
         else:
             new_lr = (
                 0.5
-                * (1.0 + np.cos(np.pi * epoch / cfg.total_epochs))
+                * (1.0 + np.cos(np.pi * epoch / cfg.epochs))
                 * cfg.learning_rate
             )
             return new_lr
