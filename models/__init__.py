@@ -5,3 +5,4 @@ from .essaytoemotionelectra import *
 from .essaytoemotiondistilberttweets import *
 from .essaytoemotionroberta import *
 from .essaytabularfeaturestoemotion import *
+from .electras import *

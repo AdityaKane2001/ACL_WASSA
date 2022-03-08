@@ -171,6 +171,80 @@ class WASSADataset(torch.utils.data.Dataset):
         }
 
 
+class BalancedDataset(torch.utils.data.Dataset):
+    def __init__(self, raw_df, cfg):
+        self.EMOTION_DICT={
+            "anger": 0,
+            "disgust": 1,
+            "fear": 2,
+            "joy": 3,
+            "neutral": 4,
+            "sadness": 5,
+            "surprise": 6
+        }
+
+        self.emotion = self.raw_df["emotion"]
+        self.essays = self.raw_df["essay"]
+
+
+    def clean_single_line(self, text):
+        # Code credits: https://github.com/mr-atharva-kulkarni/EACL-WASSA-2021-Empathy-Distress/blob/main/utils/preprocess.py#L164
+        text = re.sub('\S*@\S*\s?', '', text)
+
+        # Remove new line characters
+        text = re.sub('\s+', ' ', text)
+
+        # Remove distracting single quotes
+        text = re.sub("\'", '', text)
+
+        # Remove puntuations and numbers
+        text = re.sub('[^a-zA-Z]', ' ', text)
+
+        # Remove single characters
+        text = re.sub('\s+[a-zA-Z]\s+^I', ' ', text)
+
+        # remove multiple spaces
+        text = re.sub(r'\s+', ' ', text)
+        text = text.lower()
+
+        if not self.cfg.remove_stopwords and not self.cfg.lemmatize:
+            return text
+
+        # Remove unncecessay stopwords
+        if self.cfg.remove_stopwords:
+            text = nltk.tokenize.word_tokenize(text)
+            text = " ".join(
+                [word for word in text if word not in self.stop_words])
+
+        # Word lemmatization
+        if self.cfg.lemmatize:
+            text = self.nlp(text)
+            lemmatized_text = []
+            for word in text:
+                if word.lemma_.isalpha():
+                    if word.lemma_ != '-PRON-':
+                        lemmatized_text.append(word.lemma_.lower())
+                    # else:
+                    # lemmatized_text.append(word.lower())
+            text = " ".join([word.lower() for word in lemmatized_text])
+        return text
+
+    def __len__(self):
+        return len(self.essays)
+
+    def __getitem__(self, idx):
+        cleaned_text = self.clean_single_line(self.essays[idx])
+
+        return {
+            "inputs":  # (inputs_tuple,outputs_tuple)
+                [  # Inputs tuple
+                    cleaned_text
+                ],
+            "outputs": [  # Outputs tuple
+                torch.tensor(self.EMOTION_DICT[self.emotion[idx]])
+                ]
+        }
+
 def get_dataset(cfg):
     if cfg.dataset == "task1and2":
         train_df = get_file_to_df(os.path.join(
@@ -208,6 +282,25 @@ def get_dataset(cfg):
           sampler_train = torch.utils.data.WeightedRandomSampler(
               weights=sample_weights, num_samples=len(sample_weights), replacement=True)
 
+        train_ds = torch.utils.data.DataLoader(train_ds,
+                                               batch_size=cfg.batch_size,
+                                               sampler=sampler_train,
+                                               drop_last=True)
+        val_ds = torch.utils.data.DataLoader(val_ds,
+                                             batch_size=10000,
+                                             shuffle=False,
+                                             )
+        return train_ds, val_ds
+        
+    elif cfg.dataset == "balanced_task1and2":
+        train_df = get_file_to_df(os.path.join(
+            cfg.dataset_root_dir, "Augmented_Data_4528_maxlen.csv"))
+
+        valid_df = get_file_to_df(os.path.join(
+            cfg.dataset_root_dir, "messages_dev_features_ready_for_WS_2022.tsv"), encoding="ISO-8859-1")
+
+        train_ds = WASSADataset(train_df, cfg)
+        val_ds = WASSADataset(valid_df, cfg)
         train_ds = torch.utils.data.DataLoader(train_ds,
                                                batch_size=cfg.batch_size,
                                                sampler=sampler_train,
