@@ -182,10 +182,8 @@ class BalancedDataset(torch.utils.data.Dataset):
             "sadness": 5,
             "surprise": 6
         }
-
-        self.emotion = self.raw_df["emotion"]
-        self.essays = self.raw_df["essay"]
-
+        self.cfg = cfg
+        self.raw_df = raw_df
 
     def clean_single_line(self, text):
         # Code credits: https://github.com/mr-atharva-kulkarni/EACL-WASSA-2021-Empathy-Distress/blob/main/utils/preprocess.py#L164
@@ -291,7 +289,7 @@ def get_dataset(cfg):
                                              shuffle=False,
                                              )
         return train_ds, val_ds
-        
+
     elif cfg.dataset == "balanced_task1and2":
         train_df = get_file_to_df(os.path.join(
             cfg.dataset_root_dir, "Augmented_Data_4528_maxlen.csv"))
