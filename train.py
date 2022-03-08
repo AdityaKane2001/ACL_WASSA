@@ -12,7 +12,7 @@ warnings.filterwarnings("ignore")
 # Check before every run
 cfg = mlc.ConfigDict()
 
-cfg.model = "ElectraBase"
+cfg.model = "BERTLarge"
 cfg.dataset = "balanced_task1and2"
 cfg.remove_stopwords = False
 cfg.lemmatize = False
@@ -66,6 +66,10 @@ elif cfg.model == "ElectraBase":
     model = ElectraBase(cfg)
 elif cfg.model == "ElectraLarge":
     model = ElectraLarge(cfg)
+elif cfg.model == "BERTBase":
+    model = BERTBase(cfg)
+elif cfg.model == "BERTLarge":
+    model = BERTLarge(cfg)
 else:
     raise ValueError(f"Model type not identified. Recieved {cfg.model}")
 
