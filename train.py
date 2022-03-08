@@ -12,7 +12,7 @@ warnings.filterwarnings("ignore")
 # Check before every run
 cfg = mlc.ConfigDict()
 
-cfg.model = "BERTLarge"
+cfg.model = "ElectraBase"
 cfg.dataset = "balanced_task1and2"
 cfg.remove_stopwords = False
 cfg.lemmatize = False
@@ -20,20 +20,20 @@ cfg.maxlen = 100
 cfg.num_classes = 7
 cfg.batch_size = 64
 cfg.epochs = 20
-cfg.learning_rate = 1e-5
+cfg.learning_rate = 5e-6
+cfg.warmup_epochs = 5
+cfg.warmup_factor = 0.1
 cfg.mode = "train"
 cfg.classification_loss = "categorical_crossentropy"
 cfg.regression_loss = "mean_squared_error"
-cfg.optimizer = "adam"
+cfg.optimizer = "adamw"
 cfg.dataset_root_dir = COMMON_DS_PATH if os.path.exists(COMMON_DS_PATH) else "/kaggle/input/wassa-input-data/"
 cfg.freeze_pretrained = False
 cfg.save_best_only = True
 cfg.monitor_metric = "f1"  # One of [acc, loss, f1]
 cfg.balanced = True
 
-# print(cfg.balanced)
-# print(cfg["balanced"])
-
+#----------- WandB -----------------------------#
 #wandb stuff
 timestr = get_run_timestr()
 run_name = "-".join([cfg.model, cfg.dataset, timestr])
@@ -44,7 +44,7 @@ wandb.init(entity="acl_wassa_pictxmanipal",
            name=run_name,
            config=cfg.to_dict())
 
-
+#----------- Model -----------------------------#
 # model selection
 if cfg.model == "EssayToAllBERT":
     model = EssayToAllBERT(cfg)
@@ -73,4 +73,6 @@ elif cfg.model == "BERTLarge":
 else:
     raise ValueError(f"Model type not identified. Recieved {cfg.model}")
 
+#----------- Fit -----------------------------#
+# One function call and it's done!
 model.fit()

@@ -41,6 +41,30 @@ def confusion_matrix(y_true, y_pred):
 def get_optimizer(cfg, params):
     if cfg.optimizer == "adam":
         return torch.optim.Adam(params, lr=cfg.learning_rate)
+    if cfg.optimizer == "adamw":
+        return torch.optim.AdamW(params, lr=cfg.learning_rate)
+
+def get_scheduler(cfg, optimizer):
+    def half_cos_schedule(epoch):
+        # Taken from pycls/pycls/core/optimizer.py, since not clear from paper.
+        if epoch < cfg.warmup_epochs:
+            new_lr = (
+                0.5
+                * (1.0 + np.cos(np.pi * epoch / cfg.total_epochs))
+                * cfg.learning_rate
+            )
+            alpha = epoch / cfg.warmup_epochs
+            warmup_factor = cfg.warmup_factor * (1.0 - alpha) + alpha
+            return new_lr * warmup_factor
+        else:
+            new_lr = (
+                0.5
+                * (1.0 + np.cos(np.pi * epoch / cfg.total_epochs))
+                * cfg.learning_rate
+            )
+            return new_lr
+    return torch.optim.lr_scheduler.LambdaLR(optimizer, half_cos_schedule)
+
 
 def get_classification_report(y_true, y_pred):
     result_dict = classification_report(

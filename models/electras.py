@@ -1,4 +1,4 @@
-from transformers import ElectraTokenizer, ElectraModel
+from transformers import ElectraTokenizer, ElectraModel, get_scheduler
 import torch
 from torch import nn
 
@@ -192,9 +192,11 @@ class ElectraBase(nn.Module):
     ### Main driver function
     def fit(self):
         best_metrics = {"acc": 0.,
-                        "loss": 0.,
+                        "loss": 0., 
                         "f1": 0.}
         optimizer = get_optimizer(self.cfg, self.parameters())
+        scheduler = get_scheduler(self.cfg, optimizer)
+        
         criteria = self.get_criteria()
 
         train_ds, val_ds = get_dataset(self.cfg)
@@ -204,8 +206,10 @@ class ElectraBase(nn.Module):
 
             # training call
             epoch_loss, epoch_acc, epoch_f1 = self.train_epoch(train_ds,
-                                                               optimizer, criteria, progress_bar)
-
+                                                               optimizer,
+                                                               criteria,
+                                                               progress_bar)
+            scheduler.step()
             # validation call
             val_loss, val_acc, val_f1, val_cm, val_class_report = self.eval_epoch(
                 val_ds, criteria)
