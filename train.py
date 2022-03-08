@@ -12,7 +12,7 @@ warnings.filterwarnings("ignore")
 # Check before every run
 cfg = mlc.ConfigDict()
 
-cfg.model = "ElectraBase"
+cfg.model = "EssayToEmotionBERT"
 cfg.dataset = "balanced_task1and2"
 cfg.remove_stopwords = False
 cfg.lemmatize = False
