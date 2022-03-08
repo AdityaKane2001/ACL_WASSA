@@ -297,8 +297,8 @@ def get_dataset(cfg):
         valid_df = get_file_to_df(os.path.join(
             cfg.dataset_root_dir, "messages_dev_features_ready_for_WS_2022.tsv"), encoding="ISO-8859-1")
 
-        train_ds = WASSADataset(train_df, cfg)
-        val_ds = WASSADataset(valid_df, cfg)
+        train_ds = BalancedDataset(train_df, cfg)
+        val_ds = BalancedDataset(valid_df, cfg)
         train_ds = torch.utils.data.DataLoader(train_ds,
                                                batch_size=cfg.batch_size,
                                                sampler=sampler_train,
