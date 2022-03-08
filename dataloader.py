@@ -184,6 +184,9 @@ class BalancedDataset(torch.utils.data.Dataset):
         }
         self.cfg = cfg
         self.raw_df = raw_df
+        self.essays = self.raw_df["essay"]
+        self.emotion = self.raw_df["emotion"]
+
 
     def clean_single_line(self, text):
         # Code credits: https://github.com/mr-atharva-kulkarni/EACL-WASSA-2021-Empathy-Distress/blob/main/utils/preprocess.py#L164
