@@ -12,13 +12,13 @@ warnings.filterwarnings("ignore")
 # Check before every run
 cfg = mlc.ConfigDict()
 
-cfg.model = "ElectraBase"
+cfg.model = "ElectraLarge"
 cfg.dataset = "balanced_task1and2"
 cfg.remove_stopwords = False
 cfg.lemmatize = False
 cfg.maxlen = 100
 cfg.num_classes = 7
-cfg.batch_size = 64
+cfg.batch_size = 16
 cfg.epochs = 20
 cfg.learning_rate = 1e-5
 cfg.warmup_epochs = 5
