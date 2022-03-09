@@ -1,3 +1,4 @@
+from sched import scheduler
 from transformers import ElectraTokenizer, ElectraModel, get_scheduler
 import torch
 from torch import nn
@@ -422,6 +423,7 @@ class ElectraLarge(nn.Module):
                         "loss": 0.,
                         "f1": 0.}
         optimizer = get_optimizer(self.cfg, self.parameters())
+        scheduler = get_scheduler(self.cfg, optimizer)
         criteria = self.get_criteria()
 
         train_ds, val_ds = get_dataset(self.cfg)
@@ -442,6 +444,7 @@ class ElectraLarge(nn.Module):
                 "loss": val_loss,
                 "f1": val_f1
             }
+            scheduler.step()
 
             progress_bar.close()
 
