@@ -196,7 +196,7 @@ class ElectraBase(nn.Module):
                         "loss": 0., 
                         "f1": 0.}
         optimizer = get_optimizer(self.cfg, self.parameters())
-        scheduler = get_scheduler(self.cfg, optimizer)
+        # scheduler = get_scheduler(self.cfg, optimizer)
         
         criteria = self.get_criteria()
 
@@ -210,7 +210,7 @@ class ElectraBase(nn.Module):
                                                                optimizer,
                                                                criteria,
                                                                progress_bar)
-            scheduler.step()
+            # scheduler.step()
             # validation call
             val_loss, val_acc, val_f1, val_cm, val_class_report = self.eval_epoch(
                 val_ds, criteria)
