@@ -65,6 +65,11 @@ train_ds, val_ds = get_dataset(cfg)
 model.load_state_dict(torch.load(cfg.ckpt_path))
 model.eval()
 
+
+specialized_model = SpecializedElectraBase(cfg)
+specialized_model.load_state_dict(torch.load("/specialized_runner/ckpts/electra_7.pt"))
+specialized_model.eval()
+
 EMOTION_DICT = {
             "anger": 0,
             "disgust": 1,
@@ -76,8 +81,16 @@ EMOTION_DICT = {
         }
 INT_DICT = {v: k for k, v in EMOTION_DICT.items()}
 
+def get_specific_label_idx(label_list, labels=["anger", "neutral", 'sadness']):
+    idxs = []
+    for i in range(len(label_list)):
+        if label_list[i] in labels:
+            idxs.append(i)
+    return idxs
+
 with torch.no_grad():
     for val_batch in val_ds:
+
         val_batch["inputs"][0] = model.tokenizer(text=val_batch["inputs"][0],
                                                 add_special_tokens=True,
                                                 return_attention_mask=True,
@@ -87,15 +100,44 @@ with torch.no_grad():
                                                 return_tensors="pt")
 
         val_batch = model.push_batch_to_device(val_batch)
-
         val_outputs = model(val_batch)
         # val_loss = criteria[0](val_outputs[0], val_batch["outputs"][0])
         val_acc, val_f1, val_cm, val_report = model.calculate_metrics(
             val_batch, val_outputs)
         # print(val_outputs[0].shape)
         # print(torch.argmax(val_outputs[0]).detach().cpu().numpy())
-        a = list(np.argmax(val_outputs[0].detach().cpu().numpy(), axis=-1))
+        a = np.argmax(val_outputs[0].detach().cpu().numpy(), axis=-1)
+
         print(val_acc, val_f1)
-        b = list(map(lambda x: INT_DICT[x], a))
+        b = list(map(lambda x: INT_DICT[x], list(a)))
+        
+        c = [get_specific_label_idx(b, labels=["anger", "neutral", 'sadness'])]
+
+        # print(val_batch["inputs"][0])
+
+        specialized_outputs = specialized_model(
+            {
+            "inputs":  # (inputs_tuple,outputs_tuple)
+            [  # Inputs tuple
+                {
+                    "input_ids":val_batch["inputs"][0]["input_ids"][c],
+                    "attention_mask":val_batch["inputs"][0]["attention_mask"][c]
+
+                }
+                
+            ],
+            "outputs": [  # Outputs tuple
+                val_batch["outputs"][0][c]
+            ]
+        }
+        )
+
+        val_outputs[0][c] = specialized_outputs[0]
+
+        val_acc, val_f1, val_cm, val_report = model.calculate_metrics(
+            val_batch, val_outputs)
+
+        print(val_acc, val_f1)
+
         sol_df = pd.DataFrame(data=b)
         # sol_df.to_csv("predictions_EMO.tsv", sep="\t", index=False, header=False)
