@@ -250,7 +250,7 @@ class BalancedDataset(torch.utils.data.Dataset):
 
 class SpecializedBalancedDataset(torch.utils.data.Dataset):
     def __init__(self, raw_df, cfg):
-        super(BalancedDataset, self).__init__()
+        super(SpecializedBalancedDataset, self).__init__()
         self.EMOTION_DICT = {
             "anger": 0,
             "neutral": 1,
@@ -465,6 +465,10 @@ def get_dataset(cfg):
         valid_df = get_file_to_df(os.path.join(
             cfg.dataset_root_dir, "messages_dev_features_ready_for_WS_2022.tsv"), encoding="ISO-8859-1")
 
+        train_df = get_specific_labels_df(train_df, labels=["anger", "neutral", 'sadness'])
+        valid_df = get_specific_labels_df(valid_df, labels=["anger", "neutral", 'sadness'])
+        train_df = train_df.reset_index()
+        valid_df = valid_df.reset_index()
         train_ds = SpecializedBalancedDataset(train_df, cfg)
         val_ds = SpecializedBalancedDataset(valid_df, cfg)
 

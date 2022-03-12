@@ -34,7 +34,7 @@ def f1_loss(y_true: torch.Tensor, y_pred: torch.Tensor) -> torch.Tensor:
 
 
 def confusion_matrix(y_true, y_pred):
-    return skcm(y_true, np.argmax(y_pred, axis=-1), normalize="true")
+    return skcm(y_true, np.argmax(y_pred, axis=-1), normalize="all")
 
 
 def get_optimizer(cfg, params):
