@@ -95,7 +95,7 @@ with torch.no_grad():
         # print(val_outputs[0].shape)
         # print(torch.argmax(val_outputs[0]).detach().cpu().numpy())
         a = list(np.argmax(val_outputs[0].detach().cpu().numpy(), axis=-1))
-        
+        print(val_acc, val_f1)
         b = list(map(lambda x: INT_DICT[x], a))
         sol_df = pd.DataFrame(data=b)
-        sol_df.to_csv("predictions_EMO.tsv", sep="\t", index=False, header=False)
+        # sol_df.to_csv("predictions_EMO.tsv", sep="\t", index=False, header=False)
