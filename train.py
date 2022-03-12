@@ -12,12 +12,13 @@ warnings.filterwarnings("ignore")
 # Check before every run
 cfg = mlc.ConfigDict()
 
-cfg.model = "ElectraBase"
-cfg.dataset = "synthetic_balanced_task1and2"
+cfg.model = "SpecializedElectraBase"
+cfg.dataset = "specialized_balanced_task1and2"
 cfg.remove_stopwords = False
 cfg.lemmatize = False
 cfg.maxlen = 100
 cfg.num_classes = 7
+cfg.specialized_num_classes = 3
 cfg.batch_size = 64
 cfg.epochs = 20
 cfg.learning_rate = 1e-6
@@ -64,6 +65,8 @@ elif cfg.model == "EssayTabularFeaturesToEmotionBERT":
     model = EssayTabularFeaturesToEmotionBERT(cfg)
 elif cfg.model == "ElectraBase":
     model = ElectraBase(cfg)
+elif cfg.model == "SpecializedElectraBase":
+    model = SpecializedElectraBase(cfg)
 elif cfg.model == "ElectraLarge":
     model = ElectraLarge(cfg)
 elif cfg.model == "BERTBase":
