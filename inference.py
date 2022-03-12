@@ -81,6 +81,16 @@ EMOTION_DICT = {
         }
 INT_DICT = {v: k for k, v in EMOTION_DICT.items()}
 
+def convert_specialized_to_general_labels(argmax_list):
+    ret_list = []
+    for i in range(len(argmax_list)):
+        if argmax_list[i] != 0:
+            ret_list.append(argmax_list[i]+3)
+        else:
+            ret_list.append(argmax_list[i])
+    return ret_list
+
+
 def get_specific_label_idx(label_list, labels=["anger", "neutral", 'sadness']):
     idxs = []
     for i in range(len(label_list)):
@@ -132,12 +142,22 @@ with torch.no_grad():
         }
         )
 
-        val_outputs[0][c] = specialized_outputs[0]
+        # val_outputs[0][c] = specialized_outputs[0]
 
+        detached_spec_op = specialized_outputs[0].detach().cpu().numpy()
+
+        generalized_outputs = np.array(convert_specialized_to_general_labels(list(np.argmax(detached_spec_op, axis=-1))))
+
+        a[c] = generalized_outputs
+        val_outputs = list(val_outputs)
+        val_outputs[0] = torch.nn.functional.one_hot(torch.tensor(a), num_classes=7).to(model.device)
         val_acc, val_f1, val_cm, val_report = model.calculate_metrics(
             val_batch, val_outputs)
 
-        print(val_acc, val_f1)
+        a = np.argmax(val_outputs[0].detach().cpu().numpy(), axis=-1)
 
+        print(val_acc, val_f1)
+        b = list(map(lambda x: INT_DICT[x], list(a)))
+        
         sol_df = pd.DataFrame(data=b)
-        # sol_df.to_csv("predictions_EMO.tsv", sep="\t", index=False, header=False)
+        sol_df.to_csv("predictions_EMO.tsv", sep="\t", index=False, header=False)
