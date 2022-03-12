@@ -78,8 +78,7 @@ class ElectraBase(nn.Module):
         ax = sns.heatmap(val_cm,
                          annot=True,
                          xticklabels=self.class_names,
-                         yticklabels=self.class_names,
-                         fmt="d")
+                         yticklabels=self.class_names)
         ax.get_figure().savefig("confusion.jpg")
         stat_dict["confusion_matrix"] = wandb.Image("confusion.jpg")
 
@@ -304,8 +303,7 @@ class SpecializedElectraBase(nn.Module):
         ax = sns.heatmap(val_cm,
                          annot=True,
                          xticklabels=self.class_names,
-                         yticklabels=self.class_names,
-                         fmt="d")
+                         yticklabels=self.class_names)
         ax.get_figure().savefig("confusion.jpg")
         stat_dict["confusion_matrix"] = wandb.Image("confusion.jpg")
 
