@@ -12,8 +12,8 @@ warnings.filterwarnings("ignore")
 # Check before every run
 cfg = mlc.ConfigDict()
 
-cfg.model = "ElectraBaseRegressor"
-cfg.dataset = "task1and2"
+cfg.model = "ElectraBase"
+cfg.dataset = "oversampled_synthetic_task1and2"
 cfg.regression_task = "empathy"
 cfg.remove_stopwords = False
 cfg.lemmatize = False
