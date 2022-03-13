@@ -12,7 +12,7 @@ warnings.filterwarnings("ignore")
 # Check before every run
 cfg = mlc.ConfigDict()
 
-cfg.model = "ElectraBase"
+cfg.model = "ElectraBaseRegressor"
 cfg.dataset = "task1and2"
 cfg.regression_task = "empathy"
 cfg.remove_stopwords = False
@@ -22,7 +22,7 @@ cfg.num_classes = 7
 cfg.specialized_num_classes = 3
 cfg.batch_size = 64
 cfg.epochs = 20
-cfg.learning_rate = 5e-5
+cfg.learning_rate = 1e-5
 cfg.warmup_epochs = 5
 cfg.warmup_factor = 0.1
 cfg.mode = "train"
@@ -66,6 +66,8 @@ elif cfg.model == "EssayTabularFeaturesToEmotionBERT":
     model = EssayTabularFeaturesToEmotionBERT(cfg)
 elif cfg.model == "ElectraBase":
     model = ElectraBase(cfg)
+elif cfg.model == "ElectraBaseRegressor":
+    model = ElectraBaseRegressor(cfg)
 elif cfg.model == "SpecializedElectraBase":
     model = SpecializedElectraBase(cfg)
 elif cfg.model == "ElectraLarge":
