@@ -61,8 +61,8 @@ class ElectraBaseRegressor(nn.Module):
         """Loads all layers to GPU."""
         self.electra = self.electra.to(device)
 
-        self.emotion_lin = self.emotion_lin.to(device)
-        self.emotion_softmax = self.emotion_softmax.to(device)
+        self.regressor_lin = self.regressor_lin.to(device)
+        # self.emotion_softmax = self.emotion_softmax.to(device)
 
     def push_batch_to_device(self, batch):
         """Loads members of a batch to GPU. Note that all members are torch 
@@ -96,6 +96,9 @@ class ElectraBaseRegressor(nn.Module):
         """Detaches and loads relavent tensors to CPU and calculated metrics."""
         np_labels = batch["outputs"][self.out_index].detach().cpu().numpy()
         np_outputs = outputs[0].detach().cpu().numpy()
+
+        np_labels = np.reshape(np_labels, (np_labels.shape[0],))
+        np_outputs = np.reshape(np_outputs, (np_outputs.shape[0],))
 
         pearson_corr = pearsonr(np_labels, np_outputs)
 
