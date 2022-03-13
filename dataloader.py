@@ -39,7 +39,7 @@ class WASSADataset(torch.utils.data.Dataset):
             if x==5:
                 return 3
             return x
-        
+
         self.gender = self.gender.map(gender_map)
         self.education = self.raw_df["education"]
         self.race = self.raw_df["race"]
@@ -60,6 +60,16 @@ class WASSADataset(torch.utils.data.Dataset):
 
         self.empathy = self.raw_df["empathy"]
         self.distress = self.raw_df["distress"]
+
+        self.empathy_scaler = StandardScaler()
+        self.empathy_scaler.fit(self.empathy.reshape(-1,1))
+        self.empathy = self.empathy_scaler.transform(
+            self.empathy.reshape(-1, 1))
+
+        self.distress_scaler = StandardScaler()
+        self.distress_scaler.fit(self.distress.reshape(-1, 1))
+        self.distress = self.distress_scaler.transform(
+            self.distress.reshape(-1, 1))
 
         self.personality_conscientiousness = self.raw_df[
             "personality_conscientiousness"]
@@ -173,7 +183,7 @@ class WASSADataset(torch.utils.data.Dataset):
 
 class BalancedDataset(torch.utils.data.Dataset):
     def __init__(self, raw_df, cfg):
-        super(BalancedDataset, self).__init__()    
+        super(BalancedDataset, self).__init__()
         self.EMOTION_DICT={
             "anger": 0,
             "disgust": 1,
@@ -335,7 +345,7 @@ def get_dataset(cfg):
 
         valid_df = get_file_to_df(os.path.join(
             cfg.dataset_root_dir, "messages_dev_features_ready_for_WS_2022.tsv"), encoding="ISO-8859-1")
-        
+
         emotion = train_df["emotion"]
         EMOTION_DICT = {
             "anger": 0,
@@ -353,13 +363,13 @@ def get_dataset(cfg):
         sampler_train = None
 
         if cfg.balanced:
-          unique_labels, counts = np.unique(y_train, return_counts=True)
-          class_weights = [1/c for c in counts]
-          sample_weights = [0] * len(y_train)
-          for idx, lbl in enumerate(y_train):
-            sample_weights[idx] = class_weights[lbl]
-          sampler_train = torch.utils.data.WeightedRandomSampler(
-              weights=sample_weights, num_samples=len(sample_weights), replacement=True)
+            unique_labels, counts = np.unique(y_train, return_counts=True)
+            class_weights = [1/c for c in counts]
+            sample_weights = [0] * len(y_train)
+            for idx, lbl in enumerate(y_train):
+                sample_weights[idx] = class_weights[lbl]
+            sampler_train = torch.utils.data.WeightedRandomSampler(
+                weights=sample_weights, num_samples=len(sample_weights), replacement=True)
 
         train_ds = torch.utils.data.DataLoader(train_ds,
                                                batch_size=cfg.batch_size,
@@ -380,7 +390,7 @@ def get_dataset(cfg):
 
         train_ds = BalancedDataset(train_df, cfg)
         val_ds = BalancedDataset(valid_df, cfg)
-        
+
         emotion = train_df["emotion"]
         EMOTION_DICT = {
             "anger": 0,
@@ -396,13 +406,13 @@ def get_dataset(cfg):
         sampler_train = None
 
         if cfg.balanced:
-          unique_labels, counts = np.unique(y_train, return_counts=True)
-          class_weights = [1/c for c in counts]
-          sample_weights = [0] * len(y_train)
-          for idx, lbl in enumerate(y_train):
-            sample_weights[idx] = class_weights[lbl]
-          sampler_train = torch.utils.data.WeightedRandomSampler(
-              weights=sample_weights, num_samples=len(sample_weights), replacement=True)
+            unique_labels, counts = np.unique(y_train, return_counts=True)
+            class_weights = [1/c for c in counts]
+            sample_weights = [0] * len(y_train)
+            for idx, lbl in enumerate(y_train):
+                sample_weights[idx] = class_weights[lbl]
+            sampler_train = torch.utils.data.WeightedRandomSampler(
+                weights=sample_weights, num_samples=len(sample_weights), replacement=True)
 
         train_ds = torch.utils.data.DataLoader(train_ds,
                                                batch_size=cfg.batch_size,
@@ -413,7 +423,7 @@ def get_dataset(cfg):
                                              shuffle=False,
                                              )
         return train_ds, val_ds
-    
+
     elif cfg.dataset == "synthetic_balanced_task1and2":
 
         train_df = get_file_to_df(os.path.join(
@@ -424,7 +434,7 @@ def get_dataset(cfg):
 
         train_ds = BalancedDataset(train_df, cfg)
         val_ds = BalancedDataset(valid_df, cfg)
-        
+
         emotion = train_df["emotion"]
         EMOTION_DICT = {
             "anger": 0,
@@ -440,13 +450,13 @@ def get_dataset(cfg):
         sampler_train = None
 
         if cfg.balanced:
-          unique_labels, counts = np.unique(y_train, return_counts=True)
-          class_weights = [1/c for c in counts]
-          sample_weights = [0] * len(y_train)
-          for idx, lbl in enumerate(y_train):
-            sample_weights[idx] = class_weights[lbl]
-          sampler_train = torch.utils.data.WeightedRandomSampler(
-              weights=sample_weights, num_samples=len(sample_weights), replacement=True)
+            unique_labels, counts = np.unique(y_train, return_counts=True)
+            class_weights = [1/c for c in counts]
+            sample_weights = [0] * len(y_train)
+            for idx, lbl in enumerate(y_train):
+                sample_weights[idx] = class_weights[lbl]
+            sampler_train = torch.utils.data.WeightedRandomSampler(
+                weights=sample_weights, num_samples=len(sample_weights), replacement=True)
 
         train_ds = torch.utils.data.DataLoader(train_ds,
                                                batch_size=cfg.batch_size,
@@ -457,7 +467,7 @@ def get_dataset(cfg):
                                              shuffle=False,
                                              )
         return train_ds, val_ds
-    
+
     elif cfg.dataset == "specialized_balanced_task1and2":
         train_df = get_file_to_df(os.path.join(
             cfg.dataset_root_dir, "Augmented_Data_4528_maxlen.csv"))
@@ -483,13 +493,13 @@ def get_dataset(cfg):
         sampler_train = None
 
         if cfg.balanced:
-          unique_labels, counts = np.unique(y_train, return_counts=True)
-          class_weights = [1/c for c in counts]
-          sample_weights = [0] * len(y_train)
-          for idx, lbl in enumerate(y_train):
-            sample_weights[idx] = class_weights[lbl]
-          sampler_train = torch.utils.data.WeightedRandomSampler(
-              weights=sample_weights, num_samples=len(sample_weights), replacement=True)
+            unique_labels, counts = np.unique(y_train, return_counts=True)
+            class_weights = [1/c for c in counts]
+            sample_weights = [0] * len(y_train)
+            for idx, lbl in enumerate(y_train):
+                sample_weights[idx] = class_weights[lbl]
+            sampler_train = torch.utils.data.WeightedRandomSampler(
+                weights=sample_weights, num_samples=len(sample_weights), replacement=True)
 
         train_ds = torch.utils.data.DataLoader(train_ds,
                                                batch_size=cfg.batch_size,

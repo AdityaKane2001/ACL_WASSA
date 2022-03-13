@@ -13,7 +13,8 @@ warnings.filterwarnings("ignore")
 cfg = mlc.ConfigDict()
 
 cfg.model = "ElectraBase"
-cfg.dataset = "synthetic_balanced_task1and2"
+cfg.dataset = "task1and2"
+cfg.regression_task = "empathy"
 cfg.remove_stopwords = False
 cfg.lemmatize = False
 cfg.maxlen = 100

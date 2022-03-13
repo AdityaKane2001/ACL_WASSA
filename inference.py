@@ -82,6 +82,7 @@ EMOTION_DICT = {
 INT_DICT = {v: k for k, v in EMOTION_DICT.items()}
 
 def convert_specialized_to_general_labels(argmax_list):
+
     ret_list = []
     for i in range(len(argmax_list)):
         if argmax_list[i] != 0:
@@ -130,8 +131,8 @@ with torch.no_grad():
             "inputs":  # (inputs_tuple,outputs_tuple)
             [  # Inputs tuple
                 {
-                    "input_ids":val_batch["inputs"][0]["input_ids"][c],
-                    "attention_mask":val_batch["inputs"][0]["attention_mask"][c]
+                    "input_ids": val_batch["inputs"][0]["input_ids"][c],
+                    "attention_mask": val_batch["inputs"][0]["attention_mask"][c]
 
                 }
                 
@@ -151,8 +152,7 @@ with torch.no_grad():
         a[c] = generalized_outputs
         val_outputs = list(val_outputs)
         val_outputs[0] = torch.nn.functional.one_hot(torch.tensor(a), num_classes=7).to(model.device)
-        val_acc, val_f1, val_cm, val_report = model.calculate_metrics(
-            val_batch, val_outputs)
+        val_acc, val_f1, val_cm, val_report = model.calculate_metrics(val_batch, val_outputs)
 
         a = np.argmax(val_outputs[0].detach().cpu().numpy(), axis=-1)
 

@@ -7,3 +7,4 @@ from .essaytoemotionroberta import *
 from .essaytabularfeaturestoemotion import *
 from .electras import *
 from .berts import *
+from .regression import *
