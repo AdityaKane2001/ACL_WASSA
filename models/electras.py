@@ -205,7 +205,7 @@ class ElectraBase(nn.Module):
                         "f1": 0.}
         optimizer = get_optimizer(self.cfg, self.parameters())
         # scheduler = get_scheduler(self.cfg, optimizer)
-        
+        scheduler = torch.optim.lr_scheduler.StepLR(optimizer, 10, gamma=0.1)
         criteria = self.get_criteria()
 
         train_ds, val_ds = get_dataset(self.cfg)
@@ -222,7 +222,7 @@ class ElectraBase(nn.Module):
             # validation call
             val_loss, val_acc, val_f1, val_cm, val_class_report = self.eval_epoch(
                 val_ds, criteria)
-
+            scheduler.step()
             val_metrics = {
                 "acc": val_acc,
                 "loss": val_loss,
