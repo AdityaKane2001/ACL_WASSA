@@ -205,7 +205,7 @@ class ElectraBase(nn.Module):
                         "f1": 0.}
         optimizer = get_optimizer(self.cfg, self.parameters())
         # scheduler = get_scheduler(self.cfg, optimizer)
-        scheduler = torch.optim.lr_scheduler.StepLR(optimizer, 10, gamma=0.1)
+        scheduler = torch.optim.lr_scheduler.StepLR(optimizer, 10, gamma=0.5)
         criteria = self.get_criteria()
 
         train_ds, val_ds = get_dataset(self.cfg)
