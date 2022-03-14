@@ -21,8 +21,8 @@ np.random.seed(3407)
 # Check before every run
 cfg = mlc.ConfigDict()
 
-cfg.model = "BERTBase"
-cfg.dataset = "undersampled_synthetic_task1and2"
+cfg.model = "AngerDisgustSpecializedElectraBase"
+cfg.dataset = "anger_disgust_specialized_balanced_task1and2"
 cfg.regression_task = "empathy"
 cfg.remove_stopwords = False
 cfg.lemmatize = False
@@ -79,6 +79,8 @@ elif cfg.model == "ElectraBaseRegressor":
     model = ElectraBaseRegressor(cfg)
 elif cfg.model == "SpecializedElectraBase":
     model = SpecializedElectraBase(cfg)
+elif cfg.model == "AngerDisgustSpecializedElectraBase":
+    model = AngerDisgustSpecializedElectraBase(cfg)
 elif cfg.model == "ElectraLarge":
     model = ElectraLarge(cfg)
 elif cfg.model == "BERTBase":
