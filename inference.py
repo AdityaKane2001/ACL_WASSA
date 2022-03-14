@@ -162,7 +162,7 @@ def old_best_specialized_predict(model, specialized_model):
             print("old_best_specialized_predict f1:", val_f1)
             a = np.argmax(val_outputs[0].detach().cpu().numpy(), axis=-1)
             b = list(map(lambda x: INT_DICT[x], list(a)))
-            return b
+            return val_outputs[0].numpy()
             # sol_df = pd.DataFrame(data=b)
             # sol_df.to_csv("predictions_EMO.tsv", sep="\t", index=False, header=False)
 
@@ -187,7 +187,7 @@ def old_best_predict(model):
             print("old_best_predict f1:", val_f1)
             b = list(map(lambda x: INT_DICT[x], list(a)))
 
-            return b
+            return val_outputs[0].numpy()
 
 
 def new_best_predict(model):
@@ -210,7 +210,7 @@ def new_best_predict(model):
             print("new_best_predict f1:", val_f1)
             b = list(map(lambda x: INT_DICT[x], list(a)))
 
-            return b
+            return val_outputs[0].numpy()
 
 device = torch.device(
             "cuda") if torch.cuda.is_available() else torch.device("cpu")
@@ -233,3 +233,4 @@ old_specialized_results = old_best_specialized_predict(old_best_model, old_speci
 old_best_resuls = old_best_predict(old_best_model)
 new_best_results = new_best_predict(new_best_model)
 
+print(new_best_results)
