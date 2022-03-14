@@ -34,16 +34,18 @@ class ElectraBase(nn.Module):
             for param in self.electra.parameters():
                 param.requires_grad = False
 
-        self.emotion_lin = nn.Sequential(
-            nn.Linear(self.electra.config.hidden_size, 512),
-            torch.nn.Dropout(p=0.2),
-            nn.Linear(512, 256),
-            torch.nn.Dropout(p=0.2),
-            nn.Linear(256, 128),
-            torch.nn.Dropout(p=0.2),
-            nn.Linear(128, 64),
-            nn.Linear(64, self.cfg.num_classes)
-        )
+        # self.emotion_lin = nn.Sequential(
+        #     nn.Linear(self.electra.config.hidden_size, 512),
+        #     torch.nn.Dropout(p=0.2),
+        #     nn.Linear(512, 256),
+        #     torch.nn.Dropout(p=0.2),
+        #     nn.Linear(256, 128),
+        #     torch.nn.Dropout(p=0.2),
+        #     nn.Linear(128, 64),
+        #     nn.Linear(64, self.cfg.num_classes)
+        # )
+
+        self.emotion_lin = nn.Linear(self.electra.config.hidden_size, self.cfg.num_classes)
         self.emotion_softmax = torch.nn.Softmax(dim=-1)
         self.class_names = ("anger", "disgust", "fear", "joy", "neutral",
                             "sadness", "surprise")
