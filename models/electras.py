@@ -34,16 +34,18 @@ class ElectraBase(nn.Module):
             for param in self.electra.parameters():
                 param.requires_grad = False
 
-        self.emotion_lin = nn.Sequential(
-            nn.Linear(self.electra.config.hidden_size, 512),
-            torch.nn.Dropout(p=0.2),
-            nn.Linear(512, 256),
-            torch.nn.Dropout(p=0.2),
-            nn.Linear(256, 128),
-            torch.nn.Dropout(p=0.2),
-            nn.Linear(128, 64),
-            nn.Linear(64, self.cfg.num_classes)
-        )
+        # self.emotion_lin = nn.Sequential(
+        #     nn.Linear(self.electra.config.hidden_size, 512),
+        #     torch.nn.Dropout(p=0.2),
+        #     nn.Linear(512, 256),
+        #     torch.nn.Dropout(p=0.2),
+        #     nn.Linear(256, 128),
+        #     torch.nn.Dropout(p=0.2),
+        #     nn.Linear(128, 64),
+        #     nn.Linear(64, self.cfg.num_classes)
+        # )
+
+        self.emotion_lin = nn.Linear(self.electra.config.hidden_size, self.cfg.num_classes)
         self.emotion_softmax = torch.nn.Softmax(dim=-1)
         self.class_names = ("anger", "disgust", "fear", "joy", "neutral",
                             "sadness", "surprise")
@@ -203,7 +205,7 @@ class ElectraBase(nn.Module):
                         "f1": 0.}
         optimizer = get_optimizer(self.cfg, self.parameters())
         # scheduler = get_scheduler(self.cfg, optimizer)
-        
+        # scheduler = torch.optim.lr_scheduler.StepLR(optimizer, 10, gamma=0.5)
         criteria = self.get_criteria()
 
         train_ds, val_ds = get_dataset(self.cfg)
@@ -220,7 +222,7 @@ class ElectraBase(nn.Module):
             # validation call
             val_loss, val_acc, val_f1, val_cm, val_class_report = self.eval_epoch(
                 val_ds, criteria)
-
+            # scheduler.step()
             val_metrics = {
                 "acc": val_acc,
                 "loss": val_loss,
