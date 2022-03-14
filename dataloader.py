@@ -688,8 +688,7 @@ def get_dataset(cfg):
 
     elif cfg.dataset == "anger_disgust_specialized_balanced_task1and2":
         train_df = get_file_to_df(
-            os.path.join(cfg.dataset_root_dir,
-                         "Augmented_Data_4528_maxlen.csv"))
+            os.path.join(cfg.dataset_root_dir, "OUS_naive_400.csv"))
 
         valid_df = get_file_to_df(os.path.join(
             cfg.dataset_root_dir,
