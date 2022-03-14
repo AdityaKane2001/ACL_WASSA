@@ -5,7 +5,16 @@ import wandb
 import os
 import warnings
 
+import torch
+import numpy as np
+import random
+
 warnings.filterwarnings("ignore")
+
+torch.manual_seed(3407)
+random.seed(3407)
+np.random.seed(3407)
+
 
 #----------- Config -----------------------------#
 
