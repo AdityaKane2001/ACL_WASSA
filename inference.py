@@ -157,7 +157,8 @@ def old_best_specialized_predict(model, specialized_model):
 
             a[c] = generalized_outputs
             val_outputs = list(val_outputs)
-            val_outputs[0] = torch.nn.functional.one_hot(torch.tensor(a), num_classes=7).to(model.device)
+            new_val_outputs = [None, None]
+            new_val_outputs[0] = torch.nn.functional.one_hot(torch.tensor(a), num_classes=7).to(model.device)
             val_acc, val_f1, val_cm, val_report = model.calculate_metrics(val_batch, val_outputs)
             print("old_best_specialized_predict f1:", val_f1)
             a = np.argmax(val_outputs[0].detach().cpu().numpy(), axis=-1)
@@ -228,7 +229,15 @@ old_specialized_model.load_state_dict(torch.load(os.path.join(cfg.ckpts_path, "o
 old_specialized_model.eval()
 
 
+bert_best_model = get_model_instance("BERTBase").to(device)
+bert_best_model.load_state_dict(torch.load(os.path.join(cfg.ckpts_path, "bert_best.pt")))
+bert_best_model.eval()
+
+
 ## Get results
 old_specialized_results = old_best_specialized_predict(old_best_model, old_specialized_model)
 old_best_resuls = old_best_predict(old_best_model)
 new_best_results = new_best_predict(new_best_model)
+bert_best_results = new_best_predict(bert_best_model)
+
+np.save("bert_best.npy", bert_best_results)

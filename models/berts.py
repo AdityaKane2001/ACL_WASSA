@@ -91,8 +91,7 @@ class BERTLarge(nn.Module):
         ax = sns.heatmap(val_cm,
                          annot=True,
                          xticklabels=self.class_names,
-                         yticklabels=self.class_names,
-                         fmt="d")
+                         yticklabels=self.class_names)
         ax.get_figure().savefig("confusion.jpg")
         stat_dict["confusion_matrix"] = wandb.Image("confusion.jpg")
 
@@ -305,8 +304,7 @@ class BERTBase(nn.Module):
         ax = sns.heatmap(val_cm,
                          annot=True,
                          xticklabels=self.class_names,
-                         yticklabels=self.class_names,
-                         fmt="d")
+                         yticklabels=self.class_names)
         ax.get_figure().savefig("confusion.jpg")
         stat_dict["confusion_matrix"] = wandb.Image("confusion.jpg")
 
@@ -338,7 +336,7 @@ class BERTBase(nn.Module):
         acc = accuracy(np_batch_outputs, np_outputs)
         f1 = f1_loss(np_batch_outputs, np_outputs)
         cm = confusion_matrix(np_batch_outputs, np_outputs)
-        return acc, f1, cm
+        return acc, f1, cm, None
 
     ### Train and eval loops
     def train_epoch(self, train_ds, optimizer, criteria, progress_bar):

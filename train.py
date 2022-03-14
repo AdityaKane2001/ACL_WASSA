@@ -22,7 +22,7 @@ np.random.seed(3407)
 cfg = mlc.ConfigDict()
 
 cfg.model = "BERTBase"
-cfg.dataset = "undersampled_synthetic_task1and2"
+cfg.dataset = "undersampled_400_synthetic_task1and2"
 cfg.regression_task = "empathy"
 cfg.remove_stopwords = False
 cfg.lemmatize = False
