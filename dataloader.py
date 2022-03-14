@@ -559,7 +559,7 @@ def get_dataset(cfg):
                                              shuffle=False,
                                              )
         return train_ds, val_ds
-     elif cfg.dataset == "undersampled_400_synthetic_task1and2":
+    elif cfg.dataset == "undersampled_400_synthetic_task1and2":
 
         train_df = get_file_to_df(
             os.path.join(cfg.dataset_root_dir,
