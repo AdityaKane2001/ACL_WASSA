@@ -33,6 +33,7 @@ cfg.regression_loss = "mean_squared_error"
 cfg.optimizer = "adam"
 cfg.dataset_root_dir = COMMON_DS_PATH if os.path.exists(
     COMMON_DS_PATH) else "/kaggle/input/wassa-input-data/"
+cfg.ckpts_path = "/content/"
 cfg.freeze_pretrained = False
 cfg.save_best_only = True
 cfg.monitor_metric = "f1"  # One of [acc, loss, f1]
@@ -124,7 +125,7 @@ def old_best_specialized_predict(model, specialized_model):
             # print(torch.argmax(val_outputs[0]).detach().cpu().numpy())
             a = np.argmax(val_outputs[0].detach().cpu().numpy(), axis=-1)
 
-            print(val_acc, val_f1)
+            # print(val_acc, val_f1)
             b = list(map(lambda x: INT_DICT[x], list(a)))
 
             c = [get_specific_label_idx(b, labels=["anger", "neutral", 'sadness'])]
@@ -156,14 +157,13 @@ def old_best_specialized_predict(model, specialized_model):
 
             a[c] = generalized_outputs
             val_outputs = list(val_outputs)
-            val_outputs[0] = torch.nn.functional.one_hot(torch.tensor(a), num_classes=7).to(model.device)
+            new_val_outputs = [None, None]
+            new_val_outputs[0] = torch.nn.functional.one_hot(torch.tensor(a), num_classes=7).to(model.device)
             val_acc, val_f1, val_cm, val_report = model.calculate_metrics(val_batch, val_outputs)
-
+            print("old_best_specialized_predict f1:", val_f1)
             a = np.argmax(val_outputs[0].detach().cpu().numpy(), axis=-1)
-
-            print(val_acc, val_f1)
             b = list(map(lambda x: INT_DICT[x], list(a)))
-            return b
+            return val_outputs[0].detach().cpu().numpy()
             # sol_df = pd.DataFrame(data=b)
             # sol_df.to_csv("predictions_EMO.tsv", sep="\t", index=False, header=False)
 
@@ -184,10 +184,11 @@ def old_best_predict(model):
             val_batch = model.push_batch_to_device(val_batch)
             val_outputs = model(val_batch)
             a = np.argmax(val_outputs[0].detach().cpu().numpy(), axis=-1)
-
+            val_acc, val_f1, val_cm, val_report = model.calculate_metrics(val_batch, val_outputs)
+            print("old_best_predict f1:", val_f1)
             b = list(map(lambda x: INT_DICT[x], list(a)))
 
-            return b
+            return val_outputs[0].detach().cpu().numpy()
 
 
 def new_best_predict(model):
@@ -206,28 +207,37 @@ def new_best_predict(model):
             val_batch = model.push_batch_to_device(val_batch)
             val_outputs = model(val_batch)
             a = np.argmax(val_outputs[0].detach().cpu().numpy(), axis=-1)
-
+            val_acc, val_f1, val_cm, val_report = model.calculate_metrics(val_batch, val_outputs)
+            print("new_best_predict f1:", val_f1)
             b = list(map(lambda x: INT_DICT[x], list(a)))
 
-            return b
+            return val_outputs[0].detach().cpu().numpy()
 
-
+device = torch.device(
+            "cuda") if torch.cuda.is_available() else torch.device("cpu")
 ## Model definitions and loading
-old_best_model = get_model_instance("ElectraBase")
-old_best_model.load_state_dict(torch.load(os.path.join(cfg.dataset_root_dir, "old_best.pt")))
+old_best_model = get_model_instance("ElectraBase").to(device)
+old_best_model.load_state_dict(torch.load(os.path.join(cfg.ckpts_path, "old_best.pt")))
 old_best_model.eval()
 
-new_best_model = get_model_instance("ElectraBase")
-new_best_model.load_state_dict(torch.load(os.path.join(cfg.dataset_root_dir, "new_best.pt")))
+new_best_model = get_model_instance("ElectraBase").to(device)
+new_best_model.load_state_dict(torch.load(os.path.join(cfg.ckpts_path, "new_best.pt")))
 new_best_model.eval()
 
-old_specialized_model = get_model_instance("SpecializedElectraBase")
-old_specialized_model.load_state_dict(torch.load(os.path.join(cfg.dataset_root_dir, "old_best_specialized.pt")))
+old_specialized_model = get_model_instance("SpecializedElectraBase").to(device)
+old_specialized_model.load_state_dict(torch.load(os.path.join(cfg.ckpts_path, "old_best_specialized.pt")))
 old_specialized_model.eval()
+
+
+bert_best_model = get_model_instance("BERTBase").to(device)
+bert_best_model.load_state_dict(torch.load(os.path.join(cfg.ckpts_path, "bert_best.pt")))
+bert_best_model.eval()
 
 
 ## Get results
 old_specialized_results = old_best_specialized_predict(old_best_model, old_specialized_model)
 old_best_resuls = old_best_predict(old_best_model)
 new_best_results = new_best_predict(new_best_model)
+bert_best_results = new_best_predict(bert_best_model)
 
+np.save("bert_best.npy", bert_best_results)
