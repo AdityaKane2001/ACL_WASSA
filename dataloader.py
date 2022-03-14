@@ -708,8 +708,7 @@ def get_dataset(cfg):
         emotion = train_df["emotion"]
         EMOTION_DICT = {
             "anger": 0,
-            "neutral": 1,
-            "sadness": 2,
+            "disgust": 1
         }
         y_train = np.array([EMOTION_DICT[item] for item in emotion])
 
