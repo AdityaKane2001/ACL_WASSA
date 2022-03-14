@@ -1,3 +1,10 @@
+# Nomenclature
+# Specialized model: Addon over normal 7 class model (to be used for offline prediction)
+# Old best: https://wandb.ai/acl_wassa_pictxmanipal/acl_wassa/runs/8xhbhxo2 (F1: 0.5904)
+# Old best + specialized: Old best model + specialized model (F1: 0.603)
+# New best: https://wandb.ai/acl_wassa_pictxmanipal/acl_wassa/runs/15kilvlv (F1: 0.5967)
+
+
 from models import *
 import ml_collections as mlc
 import os
@@ -31,44 +38,39 @@ cfg.save_best_only = True
 cfg.monitor_metric = "f1"  # One of [acc, loss, f1]
 cfg.balanced = True
 
-if cfg.model == "EssayToAllBERT":
-    model = EssayToAllBERT(cfg)
-elif cfg.model == "EssayToEmotionEmpathyDistressBERT":
-    model = EssayToEmotionEmpathyDistressBERT(cfg)
-elif cfg.model == "EssayToEmotionBERT":
-    model = EssayToEmotionBERT(cfg)
-elif cfg.model == "EssayToEmotionFrozenBERT":
-    model = EssayToEmotionFrozenBERT(cfg)
-elif cfg.model == "EssayToEmotionElectra":
-    model = EssayToEmotionElectra(cfg)
-elif cfg.model == "EssayToEmotionDistilBERTonTweets":
-    model = EssayToEmotionDistilBERTonTweets(cfg)
-elif cfg.model == "EssayToEmotionRoBERTa":
-    model = EssayToEmotionRoBERTa(cfg)
-elif cfg.model == "EssayTabularFeaturesToEmotionBERT":
-    model = EssayTabularFeaturesToEmotionBERT(cfg)
-elif cfg.model == "ElectraBase":
-    model = ElectraBase(cfg)
-elif cfg.model == "SpecializedElectraBase":
-    model = SpecializedElectraBase(cfg)
-elif cfg.model == "ElectraLarge":
-    model = ElectraLarge(cfg)
-elif cfg.model == "BERTBase":
-    model = BERTBase(cfg)
-elif cfg.model == "BERTLarge":
-    model = BERTLarge(cfg)
-else:
-    raise ValueError(f"Model type not identified. Recieved {cfg.model}")
+def get_model_instance(model_str):
+    if model_str == "EssayToAllBERT":
+        model = EssayToAllBERT(cfg)
+    elif model_str == "EssayToEmotionEmpathyDistressBERT":
+        model = EssayToEmotionEmpathyDistressBERT(cfg)
+    elif model_str == "EssayToEmotionBERT":
+        model = EssayToEmotionBERT(cfg)
+    elif model_str == "EssayToEmotionFrozenBERT":
+        model = EssayToEmotionFrozenBERT(cfg)
+    elif model_str == "EssayToEmotionElectra":
+        model = EssayToEmotionElectra(cfg)
+    elif model_str == "EssayToEmotionDistilBERTonTweets":
+        model = EssayToEmotionDistilBERTonTweets(cfg)
+    elif model_str == "EssayToEmotionRoBERTa":
+        model = EssayToEmotionRoBERTa(cfg)
+    elif model_str == "EssayTabularFeaturesToEmotionBERT":
+        model = EssayTabularFeaturesToEmotionBERT(cfg)
+    elif model_str == "ElectraBase":
+        model = ElectraBase(cfg)
+    elif model_str == "SpecializedElectraBase":
+        model = SpecializedElectraBase(cfg)
+    elif model_str == "ElectraLarge":
+        model = ElectraLarge(cfg)
+    elif model_str == "BERTBase":
+        model = BERTBase(cfg)
+    elif model_str == "BERTLarge":
+        model = BERTLarge(cfg)
+    else:
+        raise ValueError(f"Model type not identified. Recieved {cfg.model}")
+    return model
 
 train_ds, val_ds = get_dataset(cfg)
 
-model.load_state_dict(torch.load(cfg.ckpt_path))
-model.eval()
-
-
-specialized_model = SpecializedElectraBase(cfg)
-specialized_model.load_state_dict(torch.load("/specialized_runner/ckpts/electra_7.pt"))
-specialized_model.eval()
 
 EMOTION_DICT = {
             "anger": 0,
@@ -99,65 +101,133 @@ def get_specific_label_idx(label_list, labels=["anger", "neutral", 'sadness']):
             idxs.append(i)
     return idxs
 
-with torch.no_grad():
-    for val_batch in val_ds:
 
-        val_batch["inputs"][0] = model.tokenizer(text=val_batch["inputs"][0],
-                                                add_special_tokens=True,
-                                                return_attention_mask=True,
-                                                max_length=cfg.maxlen,
-                                                padding='max_length',
-                                                truncation=True,
-                                                return_tensors="pt")
+def old_best_specialized_predict(model, specialized_model):
+    # Predicts old best + specialized model
+    with torch.no_grad():
+        for val_batch in val_ds:
 
-        val_batch = model.push_batch_to_device(val_batch)
-        val_outputs = model(val_batch)
-        # val_loss = criteria[0](val_outputs[0], val_batch["outputs"][0])
-        val_acc, val_f1, val_cm, val_report = model.calculate_metrics(
-            val_batch, val_outputs)
-        # print(val_outputs[0].shape)
-        # print(torch.argmax(val_outputs[0]).detach().cpu().numpy())
-        a = np.argmax(val_outputs[0].detach().cpu().numpy(), axis=-1)
+            val_batch["inputs"][0] = model.tokenizer(text=val_batch["inputs"][0],
+                                                    add_special_tokens=True,
+                                                    return_attention_mask=True,
+                                                    max_length=cfg.maxlen,
+                                                    padding='max_length',
+                                                    truncation=True,
+                                                    return_tensors="pt")
 
-        print(val_acc, val_f1)
-        b = list(map(lambda x: INT_DICT[x], list(a)))
-        
-        c = [get_specific_label_idx(b, labels=["anger", "neutral", 'sadness'])]
+            val_batch = model.push_batch_to_device(val_batch)
+            val_outputs = model(val_batch)
+            # val_loss = criteria[0](val_outputs[0], val_batch["outputs"][0])
+            val_acc, val_f1, val_cm, val_report = model.calculate_metrics(
+                val_batch, val_outputs)
+            # print(val_outputs[0].shape)
+            # print(torch.argmax(val_outputs[0]).detach().cpu().numpy())
+            a = np.argmax(val_outputs[0].detach().cpu().numpy(), axis=-1)
 
-        # print(val_batch["inputs"][0])
+            print(val_acc, val_f1)
+            b = list(map(lambda x: INT_DICT[x], list(a)))
 
-        specialized_outputs = specialized_model(
-            {
-            "inputs":  # (inputs_tuple,outputs_tuple)
-            [  # Inputs tuple
+            c = [get_specific_label_idx(b, labels=["anger", "neutral", 'sadness'])]
+
+            # print(val_batch["inputs"][0])
+
+            specialized_outputs = specialized_model(
                 {
-                    "input_ids": val_batch["inputs"][0]["input_ids"][c],
-                    "attention_mask": val_batch["inputs"][0]["attention_mask"][c]
+                "inputs":  # (inputs_tuple,outputs_tuple)
+                [  # Inputs tuple
+                    {
+                        "input_ids": val_batch["inputs"][0]["input_ids"][c],
+                        "attention_mask": val_batch["inputs"][0]["attention_mask"][c]
 
-                }
-                
-            ],
-            "outputs": [  # Outputs tuple
-                val_batch["outputs"][0][c]
-            ]
-        }
-        )
+                    }
 
-        # val_outputs[0][c] = specialized_outputs[0]
+                ],
+                "outputs": [  # Outputs tuple
+                    val_batch["outputs"][0][c]
+                ]
+            }
+            )
 
-        detached_spec_op = specialized_outputs[0].detach().cpu().numpy()
+            # val_outputs[0][c] = specialized_outputs[0]
 
-        generalized_outputs = np.array(convert_specialized_to_general_labels(list(np.argmax(detached_spec_op, axis=-1))))
+            detached_spec_op = specialized_outputs[0].detach().cpu().numpy()
 
-        a[c] = generalized_outputs
-        val_outputs = list(val_outputs)
-        val_outputs[0] = torch.nn.functional.one_hot(torch.tensor(a), num_classes=7).to(model.device)
-        val_acc, val_f1, val_cm, val_report = model.calculate_metrics(val_batch, val_outputs)
+            generalized_outputs = np.array(convert_specialized_to_general_labels(list(np.argmax(detached_spec_op, axis=-1))))
 
-        a = np.argmax(val_outputs[0].detach().cpu().numpy(), axis=-1)
+            a[c] = generalized_outputs
+            val_outputs = list(val_outputs)
+            val_outputs[0] = torch.nn.functional.one_hot(torch.tensor(a), num_classes=7).to(model.device)
+            val_acc, val_f1, val_cm, val_report = model.calculate_metrics(val_batch, val_outputs)
 
-        print(val_acc, val_f1)
-        b = list(map(lambda x: INT_DICT[x], list(a)))
-        
-        sol_df = pd.DataFrame(data=b)
-        sol_df.to_csv("predictions_EMO.tsv", sep="\t", index=False, header=False)
+            a = np.argmax(val_outputs[0].detach().cpu().numpy(), axis=-1)
+
+            print(val_acc, val_f1)
+            b = list(map(lambda x: INT_DICT[x], list(a)))
+            return b
+            # sol_df = pd.DataFrame(data=b)
+            # sol_df.to_csv("predictions_EMO.tsv", sep="\t", index=False, header=False)
+
+
+def old_best_predict(model):
+    with torch.no_grad():
+        for val_batch in val_ds:
+
+            val_batch["inputs"][0] = model.tokenizer(
+                text=val_batch["inputs"][0],
+                add_special_tokens=True,
+                return_attention_mask=True,
+                max_length=cfg.maxlen,
+                padding='max_length',
+                truncation=True,
+                return_tensors="pt")
+
+            val_batch = model.push_batch_to_device(val_batch)
+            val_outputs = model(val_batch)
+            a = np.argmax(val_outputs[0].detach().cpu().numpy(), axis=-1)
+
+            b = list(map(lambda x: INT_DICT[x], list(a)))
+
+            return b
+
+
+def new_best_predict(model):
+    with torch.no_grad():
+        for val_batch in val_ds:
+
+            val_batch["inputs"][0] = model.tokenizer(
+                text=val_batch["inputs"][0],
+                add_special_tokens=True,
+                return_attention_mask=True,
+                max_length=cfg.maxlen,
+                padding='max_length',
+                truncation=True,
+                return_tensors="pt")
+
+            val_batch = model.push_batch_to_device(val_batch)
+            val_outputs = model(val_batch)
+            a = np.argmax(val_outputs[0].detach().cpu().numpy(), axis=-1)
+
+            b = list(map(lambda x: INT_DICT[x], list(a)))
+
+            return b
+
+
+## Model definitions and loading
+old_best_model = get_model_instance("ElectraBase")
+old_best_model.load_state_dict(torch.load(os.path.join(cfg.dataset_root_dir, "old_best.pt")))
+old_best_model.eval()
+
+new_best_model = get_model_instance("ElectraBase")
+new_best_model.load_state_dict(torch.load(os.path.join(cfg.dataset_root_dir, "new_best.pt")))
+new_best_model.eval()
+
+old_specialized_model = get_model_instance("SpecializedElectraBase")
+old_specialized_model.load_state_dict(torch.load(os.path.join(cfg.dataset_root_dir, "old_best_specialized.pt")))
+old_specialized_model.eval()
+
+
+## Get results
+old_specialized_results = old_best_specialized_predict(old_best_model, old_specialized_model)
+old_best_resuls = old_best_predict(old_best_model)
+new_best_results = new_best_predict(new_best_model)
+
