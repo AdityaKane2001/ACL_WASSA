@@ -20,7 +20,7 @@ np.random.seed(3407)
 # Check before every run
 cfg = mlc.ConfigDict()
 
-cfg.model = "RobertaBase"
+cfg.model = "XLNetBase"
 cfg.dataset = "undersampled_400_synthetic_task1and2"
 cfg.regression_task = "empathy"
 cfg.remove_stopwords = False
