@@ -58,7 +58,7 @@ def predict(model, val_ds):
             return a
 
 
-all_models = glob.glob("/content/*h*m*s.pt")
+all_models = glob.glob("/content/*.pt")
 
 for modelpath in all_models:
     model = load_model(modelpath)
