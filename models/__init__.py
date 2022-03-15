@@ -9,3 +9,4 @@ from .electras import *
 from .berts import *
 from .regression import *
 from .robertas import *
+from .xlnet import *
