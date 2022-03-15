@@ -1,6 +1,8 @@
 from transformers import BertTokenizer, BertModel
 import torch
 from torch import nn
+from torch.nn.functional import one_hot
+
 
 import numpy as np
 from tqdm.auto import tqdm
@@ -14,7 +16,7 @@ from dataloader import get_dataset
 from utils import *
 
 
-class EssayToEmotionBERT(nn.Module):
+class EssayTabularFeaturesToEmotionBERT(nn.Module):
     """
     Comprises of a bert based self which takes tokenized essay and outputs:
     emotion, empathy and distress. 
@@ -28,12 +30,38 @@ class EssayToEmotionBERT(nn.Module):
                                                        do_lower_case=True)
 
         self.bert = BertModel.from_pretrained("bert-base-uncased")
+        
+        self.gender_mlp = nn.Sequential(
+            nn.Linear(3, 64),
+            nn.Linear(64, 32),
+            nn.Linear(32, 16),
+        )
 
-        if self.cfg.freeze_pretrained:
-            for param in self.bert.parameters():
-                param.requires_grad = False
+        self.education_mlp = nn.Sequential(
+            nn.Linear(6, 64),
+            nn.Linear(64, 32),
+            nn.Linear(32, 16),
+        )
 
-        self.emotion_lin = nn.Linear(self.bert.config.hidden_size,
+        self.race_mlp = nn.Sequential(
+            nn.Linear(6, 64),
+            nn.Linear(64, 32),
+            nn.Linear(32, 16),
+        )
+
+        self.age_mlp = nn.Sequential(
+            nn.Linear(1, 64),
+            nn.Linear(64, 32),
+            nn.Linear(32, 16),
+        )
+
+        self.income_mlp = nn.Sequential(
+            nn.Linear(1, 64),
+            nn.Linear(64, 32),
+            nn.Linear(32, 16),
+        )
+
+        self.emotion_lin = nn.Linear(self.bert.config.hidden_size + 16*5,
                                      self.cfg.num_classes)
         self.emotion_softmax = nn.Softmax(dim=-1)
         self.class_names = ("anger", "disgust", "fear", "joy", "neutral",
@@ -46,7 +74,18 @@ class EssayToEmotionBERT(nn.Module):
 
     def forward(self, batch):
         """Mandatory forward method"""
-        x = self.bert(**batch["inputs"][0])[1]  # (batch_size, hidden_size)
+        bert_outputs = self.bert(**batch["inputs"][0])[1]  # (batch_size, hidden_size)
+        gender_outputs = self.gender_mlp(one_hot(batch["inputs"][1]-1,num_classes=3).float())
+        education_outputs = self.education_mlp(one_hot(batch["inputs"][2]-2, num_classes=6).float())
+        race_outputs = self.race_mlp(
+            one_hot(batch["inputs"][3]-1, num_classes=6).float())
+        
+        # print(batch["inputs"][3])
+        age_outputs = self.age_mlp(torch.reshape(batch["inputs"][4], (-1,1)).float())
+        income_outputs = self.income_mlp(torch.reshape(batch["inputs"][5], (-1,1)).float())
+
+
+        x = torch.concat([bert_outputs, gender_outputs, education_outputs, race_outputs, age_outputs, income_outputs], dim=-1)
 
         emotion = self.emotion_lin(x)
         emotion = self.emotion_softmax(emotion)
@@ -57,10 +96,13 @@ class EssayToEmotionBERT(nn.Module):
     def push_all_to_device(self, device):
         """Loads all layers to GPU."""
         self.bert = self.bert.to(device)
-
+        self.gender_mlp = self.gender_mlp.to(device)
+        self.education_mlp = self.education_mlp.to(device)
+        self.race_mlp = self.race_mlp.to(device)
+        self.income_mlp =self.income_mlp.to(device)
+        self.age_mlp = self.age_mlp.to(device)
         self.emotion_lin = self.emotion_lin.to(device)
         self.emotion_softmax = self.emotion_softmax.to(device)
-
 
     def push_batch_to_device(self, batch):
         """Loads members of a batch to GPU. Note that all members are torch 
@@ -99,6 +141,7 @@ class EssayToEmotionBERT(nn.Module):
     ### Metrics
     def loss_fn(self, batch, outputs, criteria):
         """Loss function. Currently only calculated loss for emotions."""
+        # print(outputs[0].shape,  batch["outputs"][0].shape)
         loss = criteria[0](outputs[0], batch["outputs"][0])
         return loss
 
@@ -131,13 +174,13 @@ class EssayToEmotionBERT(nn.Module):
             batch = self.push_batch_to_device(batch)
 
             outputs = self(batch)
-            #                   (y_true, y_pred, criteria)
+
+            #                  (y_true, y_pred, criteria)
             loss = self.loss_fn(batch, outputs, criteria)
             optimizer.zero_grad()
             loss.backward()
 
             optimizer.step()
-            
 
             acc, f1, _ = self.calculate_metrics(batch, outputs)
             loss_ = loss.detach().cpu().numpy()
@@ -229,30 +272,3 @@ class EssayToEmotionBERT(nn.Module):
 
             self.push_to_wandb(stats_dict, val_cm)
 
-
-class EssayToEmotionFrozenBERT(EssayToEmotionBERT):
-    def __init__(self, cfg):
-        cfg.freeze_pretrained = True
-        super(EssayToEmotionFrozenBERT, self).__init__(cfg)
-        self.emotion_mlp = nn.Sequential(
-            nn.Linear(self.bert.config.hidden_size,
-                      1024),
-            nn.Linear(1024, 512),
-            nn.Linear(512, 256),
-            nn.Linear(256, 128),
-            nn.Linear(128, 64),
-            nn.Linear(64, 7),
-            nn.Softmax(dim=-1)
-        )
-        del self.emotion_lin
-        del self.emotion_softmax
-
-        device = torch.device(
-            "cuda") if torch.cuda.is_available() else torch.device("cpu")
-
-        self.emotion_mlp = self.emotion_mlp.to(device)
-
-    def forward(self, batch):
-        x = self.bert(**batch["inputs"][0])[1]  # (batch_size, hidden_size)
-        emotion = self.emotion_mlp(x)
-        return (emotion, None)

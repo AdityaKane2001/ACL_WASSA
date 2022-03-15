@@ -1,4 +1,4 @@
-from transformers import BertTokenizer, BertModel
+from transformers import ElectraTokenizer, ElectraModel
 import torch
 from torch import nn
 
@@ -14,9 +14,9 @@ from dataloader import get_dataset
 from utils import *
 
 
-class EssayToEmotionBERT(nn.Module):
+class EssayToEmotionElectra(nn.Module):
     """
-    Comprises of a bert based self which takes tokenized essay and outputs:
+    Comprises of a electra based model which takes tokenized essay and outputs:
     emotion, empathy and distress. 
     """
 
@@ -24,18 +24,18 @@ class EssayToEmotionBERT(nn.Module):
         """Initializes all layers."""
         self.cfg = cfg
         super().__init__()
-        self.tokenizer = BertTokenizer.from_pretrained("bert-base-uncased",
+        self.tokenizer = ElectraTokenizer.from_pretrained("google/electra-small-discriminator",
                                                        do_lower_case=True)
 
-        self.bert = BertModel.from_pretrained("bert-base-uncased")
+        self.electra = ElectraModel.from_pretrained("google/electra-small-discriminator")
 
         if self.cfg.freeze_pretrained:
-            for param in self.bert.parameters():
+            for param in self.electra.parameters():
                 param.requires_grad = False
 
-        self.emotion_lin = nn.Linear(self.bert.config.hidden_size,
+        self.emotion_lin = nn.Linear(self.electra.config.hidden_size,
                                      self.cfg.num_classes)
-        self.emotion_softmax = nn.Softmax(dim=-1)
+        self.emotion_softmax = torch.nn.Softmax(dim=-1)
         self.class_names = ("anger", "disgust", "fear", "joy", "neutral",
                             "sadness", "surprise")
 
@@ -46,7 +46,7 @@ class EssayToEmotionBERT(nn.Module):
 
     def forward(self, batch):
         """Mandatory forward method"""
-        x = self.bert(**batch["inputs"][0])[1]  # (batch_size, hidden_size)
+        x = self.electra(**batch["inputs"][0])[0][:, 0, :]  # (batch_size, hidden_size)
 
         emotion = self.emotion_lin(x)
         emotion = self.emotion_softmax(emotion)
@@ -56,11 +56,10 @@ class EssayToEmotionBERT(nn.Module):
     ### Utilities
     def push_all_to_device(self, device):
         """Loads all layers to GPU."""
-        self.bert = self.bert.to(device)
+        self.electra = self.electra.to(device)
 
         self.emotion_lin = self.emotion_lin.to(device)
         self.emotion_softmax = self.emotion_softmax.to(device)
-
 
     def push_batch_to_device(self, batch):
         """Loads members of a batch to GPU. Note that all members are torch 
@@ -92,6 +91,7 @@ class EssayToEmotionBERT(nn.Module):
         criteria = []
         if self.cfg.classification_loss == "categorical_crossentropy":
             criteria += [nn.CrossEntropyLoss()]
+
         if self.cfg.regression_loss == "mean_squared_error":
             criteria += [nn.MSELoss()] * 2
         return criteria
@@ -104,13 +104,16 @@ class EssayToEmotionBERT(nn.Module):
 
     def calculate_metrics(self, batch, outputs):
         """Detaches and loads relavent tensors to CPU and calculated metrics."""
-        np_batch_outputs = batch["outputs"][0].detach().cpu().numpy()
+        np_labels = batch["outputs"][0].detach().cpu().numpy()
         np_outputs = outputs[0].detach().cpu().numpy()
 
-        acc = accuracy(np_batch_outputs, np_outputs)
-        f1 = f1_loss(np_batch_outputs, np_outputs)
-        cm = confusion_matrix(np_batch_outputs, np_outputs)
-        return acc, f1, cm
+        acc = accuracy(np_labels, np_outputs)
+        f1 = f1_loss(np_labels, np_outputs)
+        cm = confusion_matrix(np_labels, np_outputs)
+
+        report = get_classification_report(np_labels, np.argmax(np_outputs, axis=-1))
+        return acc, f1, cm, report
+
 
     ### Train and eval loops
     def train_epoch(self, train_ds, optimizer, criteria, progress_bar):
@@ -131,15 +134,14 @@ class EssayToEmotionBERT(nn.Module):
             batch = self.push_batch_to_device(batch)
 
             outputs = self(batch)
-            #                   (y_true, y_pred, criteria)
+
             loss = self.loss_fn(batch, outputs, criteria)
             optimizer.zero_grad()
             loss.backward()
 
             optimizer.step()
-            
 
-            acc, f1, _ = self.calculate_metrics(batch, outputs)
+            acc, f1, _, _ = self.calculate_metrics(batch, outputs)
             loss_ = loss.detach().cpu().numpy()
 
             # record metrics
@@ -178,12 +180,12 @@ class EssayToEmotionBERT(nn.Module):
                 val_outputs = self(val_batch)
                 val_loss = criteria[0](val_outputs[0],
                                        val_batch["outputs"][0])
-                val_acc, val_f1, val_cm = self.calculate_metrics(
+                val_acc, val_f1, val_cm, val_report = self.calculate_metrics(
                     val_batch, val_outputs)
                 val_epoch_loss.append(val_loss.detach().cpu().numpy())
                 val_epoch_acc.append(val_acc)
                 val_epoch_f1.append(val_f1)
-        return np.mean(val_epoch_loss), np.mean(val_epoch_acc), np.mean(val_epoch_f1), val_cm
+        return np.mean(val_epoch_loss), np.mean(val_epoch_acc), np.mean(val_epoch_f1), val_cm, val_report
 
     ### Main driver function
     def fit(self):
@@ -198,11 +200,12 @@ class EssayToEmotionBERT(nn.Module):
         for epoch in range(self.cfg.epochs):
             progress_bar = tqdm(range(len(train_ds)))
 
+            # training call
             epoch_loss, epoch_acc, epoch_f1 = self.train_epoch(train_ds,
                                                                optimizer, criteria, progress_bar)
 
-            # validation loop
-            val_loss, val_acc, val_f1, val_cm = self.eval_epoch(
+            # validation call
+            val_loss, val_acc, val_f1, val_cm, val_class_report = self.eval_epoch(
                 val_ds, criteria)
 
             val_metrics = {
@@ -215,7 +218,7 @@ class EssayToEmotionBERT(nn.Module):
 
             if best_metrics[self.cfg.monitor_metric] < val_metrics[self.cfg.monitor_metric]:
                 best_metrics[self.cfg.monitor_metric] = val_metrics[self.cfg.monitor_metric]
-                torch.save(self.state_dict(), f"./ckpts/bert_{epoch}.pt")
+                torch.save(self.state_dict(), f"./ckpts/electra_{epoch}.pt")
 
             stats_dict = {
                 "epoch": epoch,
@@ -225,34 +228,7 @@ class EssayToEmotionBERT(nn.Module):
                 "val loss": val_loss,
                 "val accuracy": val_acc,
                 "val macro f1": val_f1,
+                "val classification report": val_class_report,
             }
 
             self.push_to_wandb(stats_dict, val_cm)
-
-
-class EssayToEmotionFrozenBERT(EssayToEmotionBERT):
-    def __init__(self, cfg):
-        cfg.freeze_pretrained = True
-        super(EssayToEmotionFrozenBERT, self).__init__(cfg)
-        self.emotion_mlp = nn.Sequential(
-            nn.Linear(self.bert.config.hidden_size,
-                      1024),
-            nn.Linear(1024, 512),
-            nn.Linear(512, 256),
-            nn.Linear(256, 128),
-            nn.Linear(128, 64),
-            nn.Linear(64, 7),
-            nn.Softmax(dim=-1)
-        )
-        del self.emotion_lin
-        del self.emotion_softmax
-
-        device = torch.device(
-            "cuda") if torch.cuda.is_available() else torch.device("cpu")
-
-        self.emotion_mlp = self.emotion_mlp.to(device)
-
-    def forward(self, batch):
-        x = self.bert(**batch["inputs"][0])[1]  # (batch_size, hidden_size)
-        emotion = self.emotion_mlp(x)
-        return (emotion, None)
