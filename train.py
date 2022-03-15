@@ -20,8 +20,8 @@ np.random.seed(3407)
 # Check before every run
 cfg = mlc.ConfigDict()
 
-cfg.model = "RobertaBase"
-cfg.dataset = "balanced_task1and2"
+cfg.model = "ElectraBase"
+cfg.dataset = "oversampled_synthetic_task1and2"
 cfg.regression_task = "empathy"
 cfg.remove_stopwords = False
 cfg.lemmatize = False
@@ -30,7 +30,7 @@ cfg.num_classes = 7
 cfg.specialized_num_classes = 3
 cfg.batch_size = 8
 cfg.epochs = 40
-cfg.learning_rate = 5e-5
+cfg.learning_rate = 1e-5
 cfg.warmup_epochs = 5
 cfg.warmup_factor = 0.1
 cfg.mode = "train"
