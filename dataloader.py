@@ -518,11 +518,12 @@ def get_dataset(cfg):
                 num_samples=len(sample_weights),
                 replacement=True)
 
-        train_ds = torch.utils.data.DataLoader(train_ds,
-                                               batch_size=cfg.batch_size,
-                                               sampler=sampler_train,
-                                               shuffle=True,
-                                               drop_last=True)
+        train_ds = torch.utils.data.DataLoader(
+            train_ds,
+            batch_size=cfg.batch_size,
+            #    sampler=sampler_train,
+            shuffle=True,
+            drop_last=True)
         val_ds = torch.utils.data.DataLoader(
             val_ds,
             batch_size=10000,
