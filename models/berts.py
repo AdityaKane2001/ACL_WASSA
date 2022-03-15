@@ -13,20 +13,6 @@ import matplotlib.pyplot as plt
 from dataloader import get_dataset
 from utils import *
 
-from transformers import BertTokenizer, BertModel
-import torch
-from torch import nn
-
-import numpy as np
-from tqdm.auto import tqdm
-import wandb
-
-import os
-import seaborn as sns
-import matplotlib.pyplot as plt
-
-from dataloader import get_dataset
-from utils import *
 
 
 class BERTLarge(nn.Module):

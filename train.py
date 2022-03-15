@@ -85,6 +85,8 @@ elif cfg.model == "ElectraLarge":
     model = ElectraLarge(cfg)
 elif cfg.model == "BERTBase":
     model = BERTBase(cfg)
+elif cfg.model == "RobertaBase":
+    model = RobertaBase(cfg)
 elif cfg.model == "BERTLarge":
     model = BERTLarge(cfg)
 else:

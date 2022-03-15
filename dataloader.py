@@ -260,11 +260,7 @@ class BalancedDataset(torch.utils.data.Dataset):
 class SpecializedBalancedDataset(torch.utils.data.Dataset):
     def __init__(self, raw_df, cfg):
         super(SpecializedBalancedDataset, self).__init__()
-        self.EMOTION_DICT = {
-            "anger": 0,
-            "neutral": 1,
-            "sadness": 2,
-        }
+        self.EMOTION_DICT = {"anger": 0, "disgust": 1}
         self.cfg = cfg
         self.raw_df = raw_df
         self.essays = self.raw_df["essay"]
@@ -705,10 +701,7 @@ def get_dataset(cfg):
         val_ds = SpecializedBalancedDataset(valid_df, cfg)
 
         emotion = train_df["emotion"]
-        EMOTION_DICT = {
-            "anger": 0,
-            "disgust": 1
-        }
+        EMOTION_DICT = {"anger": 0, "disgust": 1}
         y_train = np.array([EMOTION_DICT[item] for item in emotion])
 
         sampler_train = None
