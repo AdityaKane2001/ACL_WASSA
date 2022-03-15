@@ -53,6 +53,9 @@ def predict(model, val_ds):
 
             val_batch = model.push_batch_to_device(val_batch)
             val_outputs = model(val_batch)
+            val_acc, val_f1, val_cm, val_report = model.calculate_metrics(
+                val_batch, val_outputs)
+            print("f1:", val_f1)
             a = np.argmax(val_outputs[0].detach().cpu().numpy(), axis=-1)
 
             return a
