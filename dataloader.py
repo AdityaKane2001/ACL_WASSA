@@ -777,3 +777,80 @@ def get_dataset(cfg):
             shuffle=False,
         )
         return train_ds, val_ds
+
+    ####################### Validation and testing datasets #################################
+    elif cfg.dataset == "validation":
+        valid_df = get_file_to_df(os.path.join(
+            cfg.dataset_root_dir,
+            "messages_dev_features_ready_for_WS_2022.tsv"),
+                                  encoding="ISO-8859-1")
+
+        val_ds = BalancedDataset(valid_df, cfg)
+
+        emotion = train_df["emotion"]
+        EMOTION_DICT = {
+            "anger": 0,
+            "disgust": 1,
+            "fear": 2,
+            "joy": 3,
+            "neutral": 4,
+            "sadness": 5,
+            "surprise": 6
+        }
+        y_train = np.array([EMOTION_DICT[item] for item in emotion])
+
+        sampler_train = None
+
+        if cfg.balanced:
+            unique_labels, counts = np.unique(y_train, return_counts=True)
+            class_weights = [1 / c for c in counts]
+            sample_weights = [0] * len(y_train)
+            for idx, lbl in enumerate(y_train):
+                sample_weights[idx] = class_weights[lbl]
+            sampler_train = torch.utils.data.WeightedRandomSampler(
+                weights=sample_weights,
+                num_samples=len(sample_weights),
+                replacement=True)
+
+        train_ds = torch.utils.data.DataLoader(
+            train_ds,
+            batch_size=cfg.batch_size,
+            #    sampler=sampler_train,
+            shuffle=True,
+            drop_last=True)
+        val_ds = torch.utils.data.DataLoader(
+            val_ds,
+            batch_size=10000,
+            shuffle=False,
+        )
+        return None, val_ds
+
+    elif cfg.dataset == "validation":
+        valid_df = get_file_to_df(os.path.join(
+            cfg.dataset_root_dir,
+            "messages_dev_features_ready_for_WS_2022.tsv"),
+                                  encoding="ISO-8859-1")
+
+        val_ds = BalancedDataset(valid_df, cfg)
+
+        val_ds = torch.utils.data.DataLoader(
+            val_ds,
+            batch_size=10000,
+            shuffle=False,
+        )
+        return None, val_ds
+
+    elif cfg.dataset == "testing":
+        valid_df = get_file_to_df(os.path.join(
+            cfg.dataset_root_dir,
+            "messages_test_features_ready_for_WS_2022.tsv"),
+                                  encoding="ISO-8859-1")
+        valid_df["emotion"] = ["to predict"] * len(valid_df["essay"])
+        val_ds = BalancedDataset(valid_df, cfg)
+
+        val_ds = torch.utils.data.DataLoader(
+            val_ds,
+            batch_size=10000,
+            shuffle=False,
+        )
+        return None, val_ds
