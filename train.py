@@ -20,8 +20,8 @@ np.random.seed(3407)
 # Check before every run
 cfg = mlc.ConfigDict()
 
-cfg.model = "ElectraBase"
-cfg.dataset = "undersampled_500_synthetic_task1and2"
+cfg.model = "BERTBase"
+cfg.dataset = "oversampled_synthetic_task1and2"
 cfg.regression_task = "empathy"
 cfg.remove_stopwords = False
 cfg.lemmatize = False
