@@ -381,7 +381,7 @@ class BERTBase(nn.Module):
 
                 val_outputs = self(val_batch)
                 val_loss = criteria[0](val_outputs[0], val_batch["outputs"][0])
-                val_acc, val_f1, val_cm = self.calculate_metrics(
+                val_acc, val_f1, val_cm, _ = self.calculate_metrics(
                     val_batch, val_outputs)
                 val_epoch_loss.append(val_loss.detach().cpu().numpy())
                 val_epoch_acc.append(val_acc)
