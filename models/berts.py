@@ -14,13 +14,11 @@ from dataloader import get_dataset
 from utils import *
 
 
-
 class BERTLarge(nn.Module):
     """
     Comprises of a bert based self which takes tokenized essay and outputs:
     emotion, empathy and distress. 
     """
-
     def __init__(self, cfg):
         """Initializes all layers."""
         self.cfg = cfg
@@ -174,20 +172,18 @@ class BERTLarge(nn.Module):
                 val_batch = self.push_batch_to_device(val_batch)
 
                 val_outputs = self(val_batch)
-                val_loss = criteria[0](val_outputs[0],
-                                       val_batch["outputs"][0])
+                val_loss = criteria[0](val_outputs[0], val_batch["outputs"][0])
                 val_acc, val_f1, val_cm = self.calculate_metrics(
                     val_batch, val_outputs)
                 val_epoch_loss.append(val_loss.detach().cpu().numpy())
                 val_epoch_acc.append(val_acc)
                 val_epoch_f1.append(val_f1)
-        return np.mean(val_epoch_loss), np.mean(val_epoch_acc), np.mean(val_epoch_f1), val_cm
+        return np.mean(val_epoch_loss), np.mean(val_epoch_acc), np.mean(
+            val_epoch_f1), val_cm
 
     ### Main driver function
     def fit(self):
-        best_metrics = {"acc": 0.,
-                        "loss": 0.,
-                        "f1": 0.}
+        best_metrics = {"acc": 0., "loss": 0., "f1": 0.}
         optimizer = get_optimizer(self.cfg, self.parameters())
         criteria = self.get_criteria()
 
@@ -196,23 +192,21 @@ class BERTLarge(nn.Module):
         for epoch in range(self.cfg.epochs):
             progress_bar = tqdm(range(len(train_ds)))
 
-            epoch_loss, epoch_acc, epoch_f1 = self.train_epoch(train_ds,
-                                                               optimizer, criteria, progress_bar)
+            epoch_loss, epoch_acc, epoch_f1 = self.train_epoch(
+                train_ds, optimizer, criteria, progress_bar)
 
             # validation loop
             val_loss, val_acc, val_f1, val_cm = self.eval_epoch(
                 val_ds, criteria)
 
-            val_metrics = {
-                "acc": val_acc,
-                "loss": val_loss,
-                "f1": val_f1
-            }
+            val_metrics = {"acc": val_acc, "loss": val_loss, "f1": val_f1}
 
             progress_bar.close()
 
-            if best_metrics[self.cfg.monitor_metric] < val_metrics[self.cfg.monitor_metric]:
-                best_metrics[self.cfg.monitor_metric] = val_metrics[self.cfg.monitor_metric]
+            if best_metrics[self.cfg.monitor_metric] < val_metrics[
+                    self.cfg.monitor_metric]:
+                best_metrics[self.cfg.monitor_metric] = val_metrics[
+                    self.cfg.monitor_metric]
                 torch.save(self.state_dict(), f"./ckpts/bert_{epoch}.pt")
 
             stats_dict = {
@@ -233,7 +227,6 @@ class BERTBase(nn.Module):
     Comprises of a bert based self which takes tokenized essay and outputs:
     emotion, empathy and distress. 
     """
-
     def __init__(self, cfg):
         """Initializes all layers."""
         self.cfg = cfg
@@ -350,7 +343,7 @@ class BERTBase(nn.Module):
 
             optimizer.step()
 
-            acc, f1, _ = self.calculate_metrics(batch, outputs)
+            acc, f1, _, _ = self.calculate_metrics(batch, outputs)
             loss_ = loss.detach().cpu().numpy()
 
             # record metrics
@@ -387,20 +380,18 @@ class BERTBase(nn.Module):
                 val_batch = self.push_batch_to_device(val_batch)
 
                 val_outputs = self(val_batch)
-                val_loss = criteria[0](val_outputs[0],
-                                       val_batch["outputs"][0])
+                val_loss = criteria[0](val_outputs[0], val_batch["outputs"][0])
                 val_acc, val_f1, val_cm = self.calculate_metrics(
                     val_batch, val_outputs)
                 val_epoch_loss.append(val_loss.detach().cpu().numpy())
                 val_epoch_acc.append(val_acc)
                 val_epoch_f1.append(val_f1)
-        return np.mean(val_epoch_loss), np.mean(val_epoch_acc), np.mean(val_epoch_f1), val_cm
+        return np.mean(val_epoch_loss), np.mean(val_epoch_acc), np.mean(
+            val_epoch_f1), val_cm
 
     ### Main driver function
     def fit(self):
-        best_metrics = {"acc": 0.,
-                        "loss": 0.,
-                        "f1": 0.}
+        best_metrics = {"acc": 0., "loss": 0., "f1": 0.}
         optimizer = get_optimizer(self.cfg, self.parameters())
         criteria = self.get_criteria()
 
@@ -409,23 +400,21 @@ class BERTBase(nn.Module):
         for epoch in range(self.cfg.epochs):
             progress_bar = tqdm(range(len(train_ds)))
 
-            epoch_loss, epoch_acc, epoch_f1 = self.train_epoch(train_ds,
-                                                               optimizer, criteria, progress_bar)
+            epoch_loss, epoch_acc, epoch_f1 = self.train_epoch(
+                train_ds, optimizer, criteria, progress_bar)
 
             # validation loop
             val_loss, val_acc, val_f1, val_cm = self.eval_epoch(
                 val_ds, criteria)
 
-            val_metrics = {
-                "acc": val_acc,
-                "loss": val_loss,
-                "f1": val_f1
-            }
+            val_metrics = {"acc": val_acc, "loss": val_loss, "f1": val_f1}
 
             progress_bar.close()
 
-            if best_metrics[self.cfg.monitor_metric] < val_metrics[self.cfg.monitor_metric]:
-                best_metrics[self.cfg.monitor_metric] = val_metrics[self.cfg.monitor_metric]
+            if best_metrics[self.cfg.monitor_metric] < val_metrics[
+                    self.cfg.monitor_metric]:
+                best_metrics[self.cfg.monitor_metric] = val_metrics[
+                    self.cfg.monitor_metric]
                 torch.save(self.state_dict(), f"./ckpts/bert_{epoch}.pt")
 
             stats_dict = {
