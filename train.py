@@ -15,7 +15,6 @@ torch.manual_seed(3407)
 random.seed(3407)
 np.random.seed(3407)
 
-
 #----------- Config -----------------------------#
 
 # Check before every run
@@ -31,14 +30,15 @@ cfg.num_classes = 7
 cfg.specialized_num_classes = 3
 cfg.batch_size = 8
 cfg.epochs = 40
-cfg.learning_rate = 1e-5
+cfg.learning_rate = 1e-6
 cfg.warmup_epochs = 5
 cfg.warmup_factor = 0.1
 cfg.mode = "train"
 cfg.classification_loss = "categorical_crossentropy"
 cfg.regression_loss = "mean_squared_error"
 cfg.optimizer = "adam"
-cfg.dataset_root_dir = COMMON_DS_PATH if os.path.exists(COMMON_DS_PATH) else "/kaggle/input/wassa-input-data/"
+cfg.dataset_root_dir = COMMON_DS_PATH if os.path.exists(
+    COMMON_DS_PATH) else "/kaggle/input/wassa-input-data/"
 cfg.freeze_pretrained = False
 cfg.save_best_only = True
 cfg.monitor_metric = "f1"  # One of [acc, loss, f1]
