@@ -17,20 +17,12 @@ If you find our paper useful in your research, please consider citing:
 ```
 @misc{https://doi.org/10.48550/arxiv.2203.11899,
   doi = {10.48550/ARXIV.2203.11899},
-  
   url = {https://arxiv.org/abs/2203.11899},
-  
   author = {Kane, Aditya and Patankar, Shantanu and Khose, Sahil and Kirtane, Neeraja},
-  
   keywords = {Computation and Language (cs.CL), FOS: Computer and information sciences, FOS: Computer and information sciences},
-  
   title = {Transformer based ensemble for emotion detection},
-  
   publisher = {arXiv},
-  
   year = {2022},
-  
   copyright = {arXiv.org perpetual, non-exclusive license}
 }
-
 ```
