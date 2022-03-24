@@ -1,7 +1,7 @@
 <div align="center">
   
 # Transformer based ensemble for emotion detection
-[Aditya Kane](https://github.com/AdityaKane2001), [Shantanu Patankar](https://github.com/), [Sahil Khose](https://github.com/sahilkhose), [Neeraja Kirtane](www.github.com/)
+[Aditya Kane](https://github.com/AdityaKane2001), [Shantanu Patankar](https://github.com/), [Sahil Khose](https://github.com/sahilkhose), [Neeraja Kirtane](www.github.com/neeraja1504)
 </div>
 
 - Official implementation of https://arxiv.org/abs/2203.11899 paper. <br>
