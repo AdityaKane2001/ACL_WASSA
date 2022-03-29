@@ -4,7 +4,7 @@
 [Aditya Kane](https://github.com/AdityaKane2001), [Shantanu Patankar](https://github.com/shantypat), [Sahil Khose](https://github.com/sahilkhose), [Neeraja Kirtane](https://github.com/neeraja1504)
 </div>
 
-- Official implementation of https://arxiv.org/abs/2203.11899 paper. <br>
+- Official implementation of https://arxiv.org/abs/2203.11899. <br>
 - Our WandB project is available [here](https://wandb.ai/acl_wassa_pictxmanipal/acl_wassa) 
 
 --------------------------------------------------------------------------------------------
