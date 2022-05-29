@@ -15,14 +15,19 @@ Detecting emotions in languages is important to accomplish a complete interactio
 ## :books: Citation
 If you find our paper useful in your research, please consider citing:
 ```
-@misc{https://doi.org/10.48550/arxiv.2203.11899,
-  doi = {10.48550/ARXIV.2203.11899},
-  url = {https://arxiv.org/abs/2203.11899},
-  author = {Kane, Aditya and Patankar, Shantanu and Khose, Sahil and Kirtane, Neeraja},
-  keywords = {Computation and Language (cs.CL), FOS: Computer and information sciences, FOS: Computer and information sciences},
-  title = {Transformer based ensemble for emotion detection},
-  publisher = {arXiv},
-  year = {2022},
-  copyright = {arXiv.org perpetual, non-exclusive license}
+@inproceedings{kane-etal-2022-transformer,
+    title = "Transformer based ensemble for emotion detection",
+    author = "Kane, Aditya  and
+      Patankar, Shantanu  and
+      Khose, Sahil  and
+      Kirtane, Neeraja",
+    booktitle = "Proceedings of the 12th Workshop on Computational Approaches to Subjectivity, Sentiment {\&} Social Media Analysis",
+    month = may,
+    year = "2022",
+    address = "Dublin, Ireland",
+    publisher = "Association for Computational Linguistics",
+    url = "https://aclanthology.org/2022.wassa-1.25",
+    pages = "250--254",
+    abstract = "Detecting emotions in languages is important to accomplish a complete interaction between humans and machines. This paper describes our contribution to the WASSA 2022 shared task which handles this crucial task of emotion detection. We have to identify the following emotions: sadness, surprise, neutral, anger, fear, disgust, joy based on a given essay text. We are using an ensemble of ELECTRA and BERT models to tackle this problem achieving an F1 score of 62.76{\%}. Our codebase (https://bit.ly/WASSA{\_}shared{\_}task) and our WandB project (https://wandb.ai/acl{\_}wassa{\_}pictxmanipal/acl{\_}wassa) is publicly available.",
 }
 ```
